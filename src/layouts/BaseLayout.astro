@@ -5,6 +5,7 @@ interface Props {
   title: string;
   description?: string;
   ogType?: string;
+  ogImage?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   /** When true, ask crawlers not to index (ops pages). */
   noindex?: boolean;
@@ -14,12 +15,14 @@ const {
   title,
   description = 'Amino Brief — peptide awareness with sources. Gym-floor clarity, PubMed receipts.',
   ogType = 'website',
+  ogImage = '/og/default.jpg',
   jsonLd,
   noindex = false,
 } = Astro.props;
 
 const fullTitle = title === 'Amino Brief' ? title : `${title} · Amino Brief`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const shareImage = new URL(ogImage, Astro.site).toString();
 
 const orgSchema = {
   '@context': 'https://schema.org',
@@ -66,9 +69,13 @@ const siteSchema = {
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="Amino Brief" />
+    <meta property="og:image" content={shareImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={shareImage} />
     <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
     <script type="application/ld+json" set:html={JSON.stringify(siteSchema)} />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
