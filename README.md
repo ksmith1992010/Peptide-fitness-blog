@@ -35,7 +35,7 @@ npm run preview
 
 | Setting | Value |
 |---|---|
-| Project name | `Peptide-fitness-blog` |
+| Project name | `peptide-fitness-blog` (lowercase required) |
 | Build command | `npm run build` |
 | Deploy command | `npx wrangler deploy` |
 | Node version (Advanced) | `22` |
