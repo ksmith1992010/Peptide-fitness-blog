@@ -19,3 +19,13 @@ MOTS-c is discussed in metabolic and mitochondrial research circles. Online, it 
 ## How to read coverage
 
 Prefer reviews and primary papers over supplement-brand blogs. Check whether a claim is mechanistic, animal, or human — then match our [evidence grades](/evidence).
+
+## Compound hub
+
+[MOTS-c hub](/compounds/mots-c) for duration-context notes and tool links.
+
+## Read next
+
+- [Evidence tiers](/guides/evidence-tiers-cell-to-human)
+- [GLP-1 headlines vs evidence](/guides/glp1-headlines-vs-evidence)
+- [Reading peptide papers without the hype](/guides/reading-peptide-papers-without-the-hype)

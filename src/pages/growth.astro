@@ -2,61 +2,68 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { seoClusters } from '../data/seo-clusters';
 ---
 
 <BaseLayout
-  title="SEO & AI discovery"
-  description="How Amino Brief is built for search engines and AI crawlers — schema, llms.txt, clusters, backlinks."
+  title="SEO & organic growth"
+  description="What actually works for Amino Brief organic traffic: YMYL-safe literacy clusters, E-E-A-T, citation outreach — not buy-peptide SERPs."
+  noindex={true}
 >
   <Header slot="header" />
   <section class="section">
     <div class="container prose">
       <p class="eyebrow">Growth systems</p>
-      <h1>SEO, backlinks, AI crawlers</h1>
+      <h1>SEO that fits this niche</h1>
       <p>
-        We studied what high-performing peptide education sites do structurally (schema, topical clusters, FAQ,
-        E-E-A-T) and implemented the same <em>systems</em> with original Amino Brief content — not scraped copy.
+        Peptide content is YMYL-adjacent. Google rewards E-E-A-T, primary sources, and clear non-medical boundaries.
+        We do <strong>not</strong> compete on “buy BPC-157” or dosing protocols — we sell accessories and publish
+        literacy.
       </p>
 
-      <h2>On-site (shipped)</h2>
+      <h2>What works (scrubbed)</h2>
       <ul>
-        <li><code>/sitemap-index.xml</code> + per-page lastmod via Astro sitemap</li>
-        <li><code>/rss.xml</code> for guides</li>
-        <li><code>/llms.txt</code> + <code>/llms-full.txt</code> for AI crawlers</li>
-        <li>JSON-LD: Organization, WebSite, Article, Product, FAQPage where relevant</li>
-        <li>Evidence badges + author/publisher entity on guides</li>
-        <li>Compound cluster hubs at <a href="/compounds">/compounds</a></li>
-        <li><a href="/editorial">Editorial standards</a> + <a href="/authors">Authors</a> (E-E-A-T)</li>
-        <li>Desk publish pipeline + optional Workers AI rewrite (staff-only)</li>
-        <li>Internal links: Learn → Compounds → Guides → Tools → Shop accessories</li>
+        <li>Educational intent clusters (COA, RUO, evidence tiers, compound “what the research shows”)</li>
+        <li>Compound hubs + snapshot guides with honest evidence badges</li>
+        <li>Author / editorial / review-seat disclosure (no fake clinician badges)</li>
+        <li>Citation outreach of original explainers (.edu lists, journalism, newsletters)</li>
+        <li>Clean definitions + FAQ for AI Overviews / answer engines</li>
+        <li><code>llms.txt</code> / <code>llms-full.txt</code> kept current</li>
       </ul>
 
-      <h2>Backlink strategy (ops, not spam)</h2>
+      <h2>What doesn’t</h2>
+      <ul>
+        <li>Protocol porn and implied medical claims</li>
+        <li>PBN / fake medical citations</li>
+        <li>Thin duplicate snapshots with no sources</li>
+        <li>Keyword cannibalization between shop and education pages</li>
+      </ul>
+
+      <h2>Live clusters</h2>
+      <ul>
+        {
+          seoClusters.map((c) => (
+            <li>
+              <a href={c.hubPath}>{c.name}</a> — {c.intent}
+            </li>
+          ))
+        }
+      </ul>
+
+      <h2>On-site systems</h2>
+      <ul>
+        <li><code>/sitemap-index.xml</code></li>
+        <li><code>/rss</code> (+ <code>/rss.xml</code> alias)</li>
+        <li><code>/llms.txt</code> + <code>/llms-full.txt</code></li>
+        <li>JSON-LD: Organization, WebSite, Article, Product, BreadcrumbList, FAQ where useful</li>
+        <li><a href="/editorial">Editorial</a> · <a href="/authors">Authors</a> · <a href="/resources/sourcing-notes">Sourcing notes</a></li>
+      </ul>
+
+      <h2>Outreach</h2>
       <p>
-        Live tracker: <a href="/outreach">/outreach</a>. Pitch original literacy pieces — no PBN junk.
+        Ops tracker with copy-paste pitches (noindex): <a href="/outreach">/outreach</a>. Plan detail:
+        <code>docs/GROWTH-PLAN.md</code>.
       </p>
-      <ol>
-        <li>Pitch original explainers (COA literacy, evidence tiers, sourcing checklist) to wellness editors as citations</li>
-        <li>Guest data: publish unique reconstitution math explainers others can link</li>
-        <li>Resource page outreach: university lab safety / compounding literacy lists</li>
-        <li>Podcast / newsletter swaps with research-literacy creators (disclose relationships)</li>
-        <li>Never buy PBNs or fake medical citations</li>
-      </ol>
-
-      <h2>AI crawler play</h2>
-      <ul>
-        <li>Clean extractable answers in FAQ blocks (150–250 words)</li>
-        <li>Stable canonical URLs; no cloaking</li>
-        <li><code>llms.txt</code> points machines at pillars first</li>
-        <li>Update dates on revised guides</li>
-      </ul>
-
-      <h2>Benchmarks we mirrored (structure only)</h2>
-      <ul>
-        <li>Peptides Academy — tools + filterable education</li>
-        <li>Peptide Research USA — research-framed posts + library</li>
-        <li>Industry SEO playbooks — Product/FAQ/Article schema + clusters</li>
-      </ul>
     </div>
   </section>
   <Footer slot="footer" />

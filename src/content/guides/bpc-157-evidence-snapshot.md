@@ -22,7 +22,12 @@ If your only sources are before/after posts, you’re looking at **anecdotes**. 
 
 Regulatory and clinical conversations around research peptides continue to evolve — treat online protocols as internet content, not care plans.
 
+## Compound hub
+
+Full hub (duration context + tools): [BPC-157](/compounds/bpc-157).
+
 ## Read next
 
 - [Approved vs research compounds](/guides/approved-vs-research-compounds)
 - [Evidence tiers](/guides/evidence-tiers-cell-to-human)
+- [How to evaluate a peptide source](/guides/how-to-evaluate-a-peptide-source)

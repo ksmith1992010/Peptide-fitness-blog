@@ -15,40 +15,60 @@ import { outreachTargets } from '../data/outreach';
     <div class="container">
       <p class="eyebrow">Growth ops</p>
       <h1>Backlink outreach tracker</h1>
-      <p class="lede">Pitch original literacy pieces. No paid link schemes.</p>
+      <p class="lede" style="max-width: 46ch;">
+        Pitch original literacy pieces. Copy the ready email, personalize the first line, track status. No paid link schemes.
+      </p>
+      <p style="font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
+        Strategy: <a href="/growth">/growth</a> · Full plan in repo <code>docs/GROWTH-PLAN.md</code>
+      </p>
 
-      <div style="margin-top: 2rem; overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: 0.92rem;">
-          <thead>
-            <tr style="text-align: left; border-bottom: 2px solid var(--ink);">
-              <th style="padding: 0.6rem;">Target</th>
-              <th style="padding: 0.6rem;">Angle</th>
-              <th style="padding: 0.6rem;">Asset</th>
-              <th style="padding: 0.6rem;">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              outreachTargets.map((t) => (
-                <tr style="border-bottom: 1px solid var(--line);">
-                  <td style="padding: 0.75rem; vertical-align: top;">
-                    <strong>{t.name}</strong>
-                    <div style="color: var(--mute);">{t.type}</div>
-                  </td>
-                  <td style="padding: 0.75rem; vertical-align: top;">{t.angle}</td>
-                  <td style="padding: 0.75rem; vertical-align: top;">
-                    <a href={t.assetPath}>{t.assetLabel}</a>
-                  </td>
-                  <td style="padding: 0.75rem; vertical-align: top;">
-                    <span class="badge">{t.status}</span>
-                  </td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
+      <div style="margin-top: 2rem; display: grid; gap: 1.25rem;">
+        {
+          outreachTargets.map((t, i) => (
+            <article class="tool-panel" style="max-width: 720px;">
+              <div class="meta" style="text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-ui); font-size: 0.8rem; color: var(--mute);">
+                {t.type} · <span class="badge">{t.status}</span>
+              </div>
+              <h2 style="font-size: 1.25rem; margin: 0.4rem 0;">{t.name}</h2>
+              <p style="color: var(--mute); margin: 0 0 0.75rem;">{t.angle}</p>
+              <p style="font-family: var(--font-ui); font-size: 0.9rem; margin: 0 0 0.75rem;">
+                Asset: <a href={t.assetPath}>{t.assetLabel}</a>
+                <br />
+                Next: {t.nextAction}
+              </p>
+              <p style="font-family: var(--font-ui); font-size: 0.85rem; margin: 0 0 0.35rem;">
+                <strong>Subject:</strong> {t.pitchSubject}
+              </p>
+              <pre
+                data-pitch={i}
+                style="white-space: pre-wrap; font-family: var(--font-ui); font-size: 0.85rem; background: var(--paper-2); border: 1px solid var(--line); padding: 0.85rem; margin: 0 0 0.75rem; max-height: 12rem; overflow: auto;"
+              >{t.pitchBody}</pre>
+              <button class="btn btn-secondary" type="button" data-copy-pitch={i}>
+                Copy pitch
+              </button>
+              <span data-copy-status={i} style="font-family: var(--font-ui); font-size: 0.85rem; margin-left: 0.75rem;"></span>
+            </article>
+          ))
+        }
       </div>
     </div>
   </section>
   <Footer slot="footer" />
 </BaseLayout>
+
+<script>
+  document.querySelectorAll('[data-copy-pitch]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const i = btn.getAttribute('data-copy-pitch');
+      const pre = document.querySelector(`[data-pitch="${i}"]`);
+      const status = document.querySelector(`[data-copy-status="${i}"]`);
+      const text = pre?.textContent || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        if (status) status.textContent = 'Copied.';
+      } catch {
+        if (status) status.textContent = 'Copy failed — select manually.';
+      }
+    });
+  });
+</script>

@@ -55,27 +55,52 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: `Is this ${guide.data.title} article medical advice?`,
+      name: `What does Amino Brief cover in “${guide.data.title}”?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. Amino Brief publishes educational research-literacy content only. It is not medical advice, a diagnosis, or a treatment plan. Speak with a qualified clinician about health decisions.',
+        text: `${guide.data.description} Educational research literacy only — not medical advice or a protocol.`,
       },
     },
     {
       '@type': 'Question',
-      name: 'What evidence grade does Amino Brief use?',
+      name: `What evidence grade is “${guide.data.title}”?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `This guide is tagged ${guide.data.evidence}. Amino Brief separates FDA-approved context, human evidence, mixed evidence, animal/preclinical work, anecdotal claims, and literacy how-tos so readers do not confuse gym lore with clinical proof.`,
+        text: `Tagged ${guide.data.evidence}. Amino Brief separates FDA-approved context, human evidence, mixed evidence, animal/preclinical work, anecdotal claims, and literacy how-tos.`,
       },
     },
     {
       '@type': 'Question',
-      name: 'Was this piece clinician-reviewed?',
+      name: `Was “${guide.data.title}” clinician-reviewed?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `${reviewLabel}. See /authors for the clinical review seat status.`,
+        text: `${reviewLabel}. Seat status: https://aminobrief.com/authors`,
       },
+    },
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: new URL('/', Astro.site).toString(),
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Guides',
+      item: new URL('/guides', Astro.site).toString(),
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: guide.data.title,
+      item: new URL(`/guides/${guide.id}`, Astro.site).toString(),
     },
   ],
 };
@@ -85,12 +110,16 @@ const faqSchema = {
   title={guide.data.title}
   description={guide.data.description}
   ogType="article"
-  jsonLd={[articleSchema, faqSchema]}
+  jsonLd={[articleSchema, faqSchema, breadcrumbSchema]}
 >
   <Header slot="header" />
   <article class="section">
     <div class="container">
-      <p class="eyebrow">{guide.data.category}</p>
+      <p class="eyebrow" style="font-family: var(--font-ui);">
+        <a href="/guides" style="color: inherit;">Guides</a>
+        <span aria-hidden="true"> / </span>
+        {guide.data.category}
+      </p>
       <h1 style="max-width: 14ch;">{guide.data.title}</h1>
       <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 1rem 0 1.5rem; font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
         <EvidenceBadge level={guide.data.evidence} />

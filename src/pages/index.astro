@@ -6,6 +6,7 @@ import GuideList from '../components/GuideList.astro';
 import NewsletterForm from '../components/NewsletterForm.astro';
 import { getCollection } from 'astro:content';
 import { products } from '../data/products';
+import { peptides } from '../data/peptides';
 
 const featured = (await getCollection('guides'))
   .filter((g) => g.data.featured)
@@ -15,6 +16,8 @@ const featured = (await getCollection('guides'))
 const shopSpotlight = products.filter((p) =>
   ['bac-water', 'insulin-syringes', 'vial-carry-case'].includes(p.slug),
 );
+
+const compoundLinks = peptides.filter((p) => p.id !== 'generic').slice(0, 7);
 ---
 
 <BaseLayout
@@ -59,6 +62,18 @@ const shopSpotlight = products.filter((p) =>
         <h2>Compound hubs</h2>
         <p>Name-by-name research literacy — evidence notes, duration context, tool links. Not protocols.</p>
       </div>
+      <ul class="link-list" style="margin: 0 0 1.25rem;">
+        {
+          compoundLinks.map((p) => (
+            <li>
+              <a href={`/compounds/${p.id}`}>
+                <h3 style="margin: 0;">{p.name}</h3>
+                <p style="margin: 0.35rem 0 0; color: var(--mute);">{p.summary}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
       <div class="btn-row">
         <a class="btn btn-primary" href="/compounds">Browse compounds</a>
         <a class="btn btn-secondary" href="/tools">Open the tools</a>

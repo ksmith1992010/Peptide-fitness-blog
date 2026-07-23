@@ -16,3 +16,5 @@
 2. Set Turnstile / Stripe / Resend secrets when ready — `docs/OPS-INTEGRATIONS.md`
 3. Seat clinical reviewer when a licensed clinician applies (`/authors`)
 4. Swap catalog studio shots for real received-pack photography when inventory lands
+5. Execute `/outreach` pitches (copy ready); wire Google Search Console after domain attach
+6. Follow `docs/GROWTH-PLAN.md` clusters — literacy/accessories intent only

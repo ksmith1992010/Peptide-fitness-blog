@@ -2,8 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { seoClusters } from '../data/seo-clusters';
 
-const paths = [
+const starter = [
   {
     title: '1. What peptides actually are',
     body: 'Amino acid chains, signaling, and why TikTok names are not a pharmacology course.',
@@ -32,7 +33,10 @@ const paths = [
 ];
 ---
 
-<BaseLayout title="Learn" description="Learning paths for peptide awareness — basics, evidence, quality, compounds, and math tools.">
+<BaseLayout
+  title="Learn"
+  description="Learning paths and topical clusters for peptide awareness — literacy, sourcing, compounds, media, tools."
+>
   <Header slot="header" />
   <section class="section">
     <div class="container">
@@ -41,12 +45,46 @@ const paths = [
       <p class="lede">Five stops. No stack porn. Just the foundation so the rest of the internet makes more sense.</p>
       <ul class="link-list" style="margin-top: 2.5rem;">
         {
-          paths.map((p) => (
+          starter.map((p) => (
             <li>
               <a href={p.href}>
                 <h3>{p.title}</h3>
                 <p style="margin: 0.35rem 0 0; color: var(--mute);">{p.body}</p>
               </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="section-head" style="margin-top: 3rem;">
+        <h2>Topical clusters (how we win organic)</h2>
+        <p>
+          We chase literacy and accessories intent — not “buy research peptide” SERPs. Full scrub in
+          <a href="/growth">growth notes</a>.
+        </p>
+      </div>
+
+      <ul class="link-list" style="margin-top: 1.5rem;">
+        {
+          seoClusters.map((c) => (
+            <li>
+              <div style="padding: 0.35rem 0;">
+                <h3 style="margin: 0 0 0.35rem;">
+                  <a href={c.hubPath}>{c.name}</a>
+                </h3>
+                <p style="margin: 0; color: var(--mute);">{c.intent}</p>
+                <p style="margin: 0.4rem 0 0.6rem; font-family: var(--font-ui); font-size: 0.88rem; color: var(--ink-soft);">
+                  {c.whyItWorks}
+                </p>
+                <p style="margin: 0; font-family: var(--font-ui); font-size: 0.9rem;">
+                  {c.pages.map((p, idx) => (
+                    <>
+                      {idx > 0 && ' · '}
+                      <a href={p.path}>{p.label}</a>
+                    </>
+                  ))}
+                </p>
+              </div>
             </li>
           ))
         }
