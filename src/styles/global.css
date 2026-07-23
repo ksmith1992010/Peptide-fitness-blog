@@ -401,6 +401,20 @@ p {
   border-top: 2px solid var(--ink);
 }
 
+.product-media {
+  display: block;
+  margin: 0 0 0.85rem;
+  border: 1px solid var(--line);
+  background: var(--paper-2);
+  overflow: hidden;
+}
+
+.product-media img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
 .product h3 {
   margin-bottom: 0.35rem;
 }
