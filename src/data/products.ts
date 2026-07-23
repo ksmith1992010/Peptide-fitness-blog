@@ -201,6 +201,18 @@ export function getProduct(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
 }
 
+/** SKUs that can use Stripe when Worker price secrets are set */
+export const stripeCheckoutSlugs = [
+  'bac-water',
+  'insulin-syringes',
+  'vial-carry-case',
+  'alcohol-prep-pads',
+  'sterile-empty-vials',
+  'nitrile-gloves',
+  'vial-labels-kit',
+  'recon-starter-kit',
+] as const;
+
 export function priceForTier(product: Product, qty: number): { unit: number; tier: BuyerTier } {
   if (product.wholesaleMoq && product.wholesalePrice && qty >= product.wholesaleMoq) {
     return { unit: product.wholesalePrice, tier: 'wholesale' };

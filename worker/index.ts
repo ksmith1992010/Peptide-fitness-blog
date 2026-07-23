@@ -1,14 +1,19 @@
 /**
  * Amino Brief Cloudflare Worker
- * - /api/newsletter  POST subscribe → KV
- * - /api/news/drafts GET list drafts
- * - /api/news/run    POST trigger news loop (secret)
- * - scheduled cron   pull trends → draft briefs in KV
- * - all other routes → static assets
+ * - /api/newsletter           POST subscribe → KV
+ * - /api/checkout             POST Stripe Checkout session
+ * - /api/checkout/priced      GET priced SKU list
+ * - /api/news/drafts          GET list drafts
+ * - /api/news/drafts/:id      GET full markdown (staff)
+ * - /api/news/drafts/:id/rewrite POST Workers AI assist (staff)
+ * - /api/news/run             POST trigger news loop (staff)
+ * - scheduled cron            pull trends → draft briefs in KV
+ * - all other routes          → static assets
  */
 
 export interface Env {
   ASSETS: Fetcher;
+  AI?: Ai;
   SUBSCRIBERS?: KVNamespace;
   NEWS_DRAFTS?: KVNamespace;
   NEWS_TRIGGER_SECRET?: string;
@@ -17,6 +22,13 @@ export interface Env {
   STRIPE_PRICE_BAC_WATER?: string;
   STRIPE_PRICE_SYRINGES?: string;
   STRIPE_PRICE_CASE?: string;
+  STRIPE_PRICE_ALCOHOL?: string;
+  STRIPE_PRICE_EMPTY_VIALS?: string;
+  STRIPE_PRICE_GLOVES?: string;
+  STRIPE_PRICE_LABELS?: string;
+  STRIPE_PRICE_RECON_KIT?: string;
+  /** Optional JSON object: { "slug": "price_xxx", ... } */
+  STRIPE_PRICE_JSON?: string;
   PUBLIC_SITE_URL?: string;
 }
 
@@ -30,6 +42,45 @@ interface NewsItem {
   draftMarkdown: string;
   createdAt: string;
   status: 'draft';
+  aiRewrite?: string;
+  aiRewrittenAt?: string;
+}
+
+function requireStaff(request: Request, env: Env): Response | null {
+  const auth = request.headers.get('Authorization') || '';
+  const secret = env.NEWS_TRIGGER_SECRET;
+  if (!secret || auth !== `Bearer ${secret}`) {
+    return json({ error: 'Unauthorized' }, 401, request);
+  }
+  return null;
+}
+
+function stripePriceMap(env: Env): Record<string, string> {
+  const map: Record<string, string> = {};
+  const pairs: [string, string | undefined][] = [
+    ['bac-water', env.STRIPE_PRICE_BAC_WATER],
+    ['insulin-syringes', env.STRIPE_PRICE_SYRINGES],
+    ['vial-carry-case', env.STRIPE_PRICE_CASE],
+    ['alcohol-prep-pads', env.STRIPE_PRICE_ALCOHOL],
+    ['sterile-empty-vials', env.STRIPE_PRICE_EMPTY_VIALS],
+    ['nitrile-gloves', env.STRIPE_PRICE_GLOVES],
+    ['vial-labels-kit', env.STRIPE_PRICE_LABELS],
+    ['recon-starter-kit', env.STRIPE_PRICE_RECON_KIT],
+  ];
+  for (const [slug, price] of pairs) {
+    if (price) map[slug] = price;
+  }
+  if (env.STRIPE_PRICE_JSON) {
+    try {
+      const extra = JSON.parse(env.STRIPE_PRICE_JSON) as Record<string, string>;
+      for (const [k, v] of Object.entries(extra)) {
+        if (typeof v === 'string' && v.startsWith('price_')) map[k] = v;
+      }
+    } catch {
+      // ignore bad JSON
+    }
+  }
+  return map;
 }
 
 function corsHeaders(request: Request): Record<string, string> {
@@ -304,13 +355,18 @@ async function handleStripeCheckout(request: Request, env: Env): Promise<Respons
 
   const sku = body?.sku || '';
   const quantity = Math.max(1, Math.min(100, Number(body?.quantity || 1)));
-  const priceMap: Record<string, string | undefined> = {
-    'bac-water': env.STRIPE_PRICE_BAC_WATER,
-    'insulin-syringes': env.STRIPE_PRICE_SYRINGES,
-    'vial-carry-case': env.STRIPE_PRICE_CASE,
-  };
+  const priceMap = stripePriceMap(env);
   const price = priceMap[sku];
-  if (!price) return json({ error: 'Unknown or unpriced SKU for Stripe checkout' }, 400, request);
+  if (!price) {
+    return json(
+      {
+        error: 'Unknown or unpriced SKU for Stripe checkout',
+        pricedSkus: Object.keys(priceMap),
+      },
+      400,
+      request,
+    );
+  }
 
   const site = env.PUBLIC_SITE_URL || 'https://aminobrief.com';
   const params = new URLSearchParams();
@@ -364,6 +420,8 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
           summary: d.summary,
           createdAt: d.createdAt,
           status: d.status,
+          hasAiRewrite: Boolean(d.aiRewrite),
+          aiRewrittenAt: d.aiRewrittenAt || null,
         })),
         lastRun: await env.NEWS_DRAFTS.get('meta:last-run'),
       },
@@ -372,11 +430,28 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     );
   }
 
+  // POST /api/news/drafts/:id/rewrite — Workers AI assist (staff-only)
+  if (url.pathname.match(/^\/api\/news\/drafts\/[^/]+\/rewrite$/) && request.method === 'POST') {
+    const denied = requireStaff(request, env);
+    if (denied) return denied;
+    if (!env.NEWS_DRAFTS) return json({ error: 'NEWS_DRAFTS KV not configured' }, 503, request);
+    if (!env.AI) return json({ error: 'Workers AI binding not available' }, 503, request);
+    const id = url.pathname.split('/')[4];
+    if (!id) return json({ error: 'Not found' }, 404, request);
+    const raw = await env.NEWS_DRAFTS.get(`draft:${id}`);
+    if (!raw) return json({ error: 'Not found' }, 404, request);
+    const draft = JSON.parse(raw) as NewsItem;
+    const rewrite = await rewriteDraftWithAi(env, draft);
+    draft.aiRewrite = rewrite;
+    draft.aiRewrittenAt = new Date().toISOString();
+    await env.NEWS_DRAFTS.put(`draft:${id}`, JSON.stringify(draft));
+    return json({ id, aiRewrite: rewrite, aiRewrittenAt: draft.aiRewrittenAt }, 200, request);
+  }
+
   // Full draft markdown is staff-only
   if (url.pathname.startsWith('/api/news/drafts/') && request.method === 'GET') {
-    const auth = request.headers.get('Authorization') || '';
-    const secret = env.NEWS_TRIGGER_SECRET;
-    if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401, request);
+    const denied = requireStaff(request, env);
+    if (denied) return denied;
     if (!env.NEWS_DRAFTS) return json({ error: 'NEWS_DRAFTS KV not configured' }, 503, request);
     const id = url.pathname.split('/').pop();
     if (!id) return json({ error: 'Not found' }, 404, request);
@@ -386,15 +461,53 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
 
   if (url.pathname === '/api/news/run' && request.method === 'POST') {
-    const auth = request.headers.get('Authorization') || '';
-    const secret = env.NEWS_TRIGGER_SECRET;
-    if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401, request);
+    const denied = requireStaff(request, env);
+    if (denied) return denied;
     if (!env.NEWS_DRAFTS) return json({ error: 'NEWS_DRAFTS KV not configured' }, 503, request);
     const result = await runNewsLoop(env);
     return json(result, 200, request);
   }
 
+  if (url.pathname === '/api/checkout/priced' && request.method === 'GET') {
+    return json({ pricedSkus: Object.keys(stripePriceMap(env)) }, 200, request);
+  }
+
   return json({ error: 'Not found' }, 404, request);
+}
+
+async function rewriteDraftWithAi(env: Env, draft: NewsItem): Promise<string> {
+  const prompt = `You are an editor for Amino Brief, an educational peptide-literacy site.
+Rewrite the desk draft below into a tighter editorial brief.
+
+Rules:
+- Educational / research framing only — never prescribe dosing or medical protocols
+- Keep a "gym bro with sources" tone: clear, direct, skeptical of hype
+- Include an Evidence checklist section with bullets: verified vs rumor, evidence tier guess, RUO/quality angle, related internal link suggestions
+- Keep the source URL
+- Output markdown only (no preamble)
+- End with: Educational desk note only. Not medical advice.
+
+Title: ${draft.title}
+Source: ${draft.source}
+URL: ${draft.url}
+Feed summary: ${draft.summary}
+
+Original draft:
+${draft.draftMarkdown}`;
+
+  const result = (await env.AI!.run('@cf/meta/llama-3.1-8b-instruct', {
+    messages: [
+      { role: 'system', content: 'You write careful research-literacy markdown for Amino Brief.' },
+      { role: 'user', content: prompt },
+    ],
+    max_tokens: 1200,
+  })) as { response?: string };
+
+  const text = (result.response || '').trim();
+  if (!text) {
+    throw new Error('Workers AI returned an empty rewrite');
+  }
+  return text;
 }
 
 export default {

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { authors } from '../data/authors';
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'Amino Brief authors',
+  description: 'Who publishes Amino Brief and how medical review is disclosed.',
+  mainEntity: authors.map((a) => ({
+    '@type': 'Person',
+    name: a.name,
+    jobTitle: a.role,
+    description: a.bio,
+  })),
+};
+---
+
+<BaseLayout
+  title="Authors"
+  description="Who writes Amino Brief, what credentials we claim, and how medical review is disclosed."
+  jsonLd={schema}
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">E-E-A-T</p>
+      <h1>Authors & review</h1>
+      <p class="lede" style="max-width: 40ch;">
+        We publish under a clear editorial identity. We do not fake medical credentials.
+      </p>
+
+      <ul class="link-list" style="margin-top: 2rem;">
+        {
+          authors.map((a) => (
+            <li>
+              <div style="padding: 0.25rem 0;">
+                <div class="meta" style="text-transform: uppercase; letter-spacing: 0.08em;">
+                  {a.role}
+                  {!a.reviewsMedicalClaims && ' · not a medical endorsement'}
+                </div>
+                <h3 style="margin: 0.4rem 0;">{a.name}</h3>
+                <p style="margin: 0; color: var(--mute);">{a.bio}</p>
+                {a.credentials && (
+                  <p style="margin: 0.5rem 0 0; font-family: var(--font-ui); font-size: 0.88rem; color: var(--ink-soft);">
+                    {a.credentials}
+                  </p>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="btn-row" style="margin-top: 2rem;">
+        <a class="btn btn-primary" href="/editorial">Editorial standards</a>
+        <a class="btn btn-secondary" href="/about">About + disclaimer</a>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

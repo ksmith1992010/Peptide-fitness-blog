@@ -50,4 +50,12 @@ export const outreachTargets: OutreachTarget[] = [
     assetPath: '/guides/how-to-evaluate-a-peptide-source',
     status: 'drafting',
   },
+  {
+    name: 'Metabolic / obesity research explainers',
+    type: 'Journalism citation',
+    angle: 'Retatrutide: trials vs forum lore without protocol porn',
+    assetLabel: 'Retatrutide snapshot',
+    assetPath: '/guides/retatrutide-evidence-snapshot',
+    status: 'idea',
+  },
 ];

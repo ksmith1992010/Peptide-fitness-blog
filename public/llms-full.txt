@@ -13,6 +13,7 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 - https://aminobrief.com/guides/bpc-157-evidence-snapshot
 - https://aminobrief.com/guides/reconstitution-math-without-the-guru
 - https://aminobrief.com/guides/mots-c-snapshot
+- https://aminobrief.com/guides/retatrutide-evidence-snapshot
 - https://aminobrief.com/guides/common-peptide-myths
 
 ## Compound hubs
@@ -31,8 +32,11 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 
 ## Trust / ops
 - https://aminobrief.com/editorial
+- https://aminobrief.com/authors
 - https://aminobrief.com/outreach
 - https://aminobrief.com/desk
+- Desk staff tools: Bearer NEWS_TRIGGER_SECRET for full markdown + Workers AI rewrite assist
+- Publish path: desk draft → human edit → src/content/guides/*.md PR (never auto-publish)
 
 ## Policies
 - No peptide compounds sold on this domain

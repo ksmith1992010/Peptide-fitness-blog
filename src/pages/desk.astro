@@ -2,11 +2,20 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
+const publishSteps = [
+  'Fact-check claims against primary sources (PubMed / trials / FDA notes)',
+  'Assign an evidence grade — never leave it as “draft vibes”',
+  'Strip dosing / protocol language; keep literacy framing',
+  'Add internal links to compounds, evidence, and tools',
+  'Save as src/content/guides/<slug>.md and open a PR',
+  'Human review merges — cron never auto-publishes',
+];
 ---
 
 <BaseLayout
   title="Newsroom desk"
-  description="Auto-pulled peptide-space drafts awaiting editorial review."
+  description="Auto-pulled peptide-space drafts with staff tools for AI assist and publish checklist."
 >
   <Header slot="header" />
   <section class="section">
@@ -14,13 +23,51 @@ import Footer from '../components/Footer.astro';
       <p class="eyebrow">Newsroom</p>
       <h1>Desk drafts</h1>
       <p class="lede" style="max-width: 42ch;">
-        Cron pulls trending / breaking feeds every 6 hours and stages drafts here. Nothing auto-publishes to Guides.
+        Cron pulls feeds every 6 hours and stages drafts here. Nothing auto-publishes to Guides.
       </p>
-      <p class="disclaimer">Drafts are starting points — fact-check before anything hits the public guide library.</p>
+      <p class="disclaimer">
+        Staff tools below need <code>NEWS_TRIGGER_SECRET</code>. Token stays in your browser session only.
+      </p>
+
+      <div class="tool-panel" style="margin-top: 1.5rem; max-width: 640px;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Staff session</h2>
+        <div class="field">
+          <label for="staff-token">Desk secret</label>
+          <input id="staff-token" type="password" autocomplete="off" placeholder="Paste NEWS_TRIGGER_SECRET" />
+        </div>
+        <div class="btn-row" style="margin-top: 0.75rem;">
+          <button class="btn btn-primary" type="button" data-save-token>Save in session</button>
+          <button class="btn btn-secondary" type="button" data-run-news>Run news pull now</button>
+          <button class="btn btn-secondary" type="button" data-clear-token>Clear</button>
+        </div>
+        <p data-staff-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <h2 style="font-size: 1.35rem;">Publish pipeline</h2>
+        <ol style="font-family: var(--font-ui); color: var(--ink-soft); max-width: 52ch;">
+          {publishSteps.map((step) => <li style="margin-bottom: 0.35rem;">{step}</li>)}
+        </ol>
+      </div>
 
       <div id="desk" style="margin-top: 2rem;">
         <p data-desk-status>Loading drafts…</p>
-        <ul class="link-list" data-desk-list></ul>
+        <div data-desk-list></div>
+      </div>
+
+      <div class="tool-panel" style="margin-top: 2rem; display: none;" data-draft-panel>
+        <h2 style="font-size: 1.25rem;" data-draft-title>Draft</h2>
+        <p style="color: var(--mute); margin: 0.35rem 0 1rem;" data-draft-meta></p>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="button" data-copy-md>Copy markdown</button>
+          <button class="btn btn-secondary" type="button" data-ai-rewrite>AI rewrite assist</button>
+          <button class="btn btn-secondary" type="button" data-copy-checklist>Copy publish checklist</button>
+        </div>
+        <p data-draft-action-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0;"></p>
+        <pre
+          data-draft-body
+          style="white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 0.82rem; max-height: 28rem; overflow: auto; margin: 0;"
+        ></pre>
       </div>
     </div>
   </section>
@@ -28,8 +75,26 @@ import Footer from '../components/Footer.astro';
 </BaseLayout>
 
 <script>
+  const TOKEN_KEY = 'amino-brief-desk-token';
   const status = document.querySelector('[data-desk-status]');
   const list = document.querySelector('[data-desk-list]');
+  const staffStatus = document.querySelector('[data-staff-status]');
+  const tokenInput = document.getElementById('staff-token');
+  const draftPanel = document.querySelector('[data-draft-panel]');
+  const draftTitle = document.querySelector('[data-draft-title]');
+  const draftMeta = document.querySelector('[data-draft-meta]');
+  const draftBody = document.querySelector('[data-draft-body]');
+  const draftActionStatus = document.querySelector('[data-draft-action-status]');
+  let activeDraftId = null;
+
+  function getToken() {
+    return sessionStorage.getItem(TOKEN_KEY) || '';
+  }
+
+  function authHeaders() {
+    const token = getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
 
   function safeHttpUrl(value) {
     try {
@@ -41,49 +106,200 @@ import Footer from '../components/Footer.astro';
     }
   }
 
+  function slugify(title) {
+    return String(title || 'desk-draft')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 60);
+  }
+
+  async function openDraft(id) {
+    if (!getToken()) {
+      if (draftActionStatus) draftActionStatus.textContent = 'Save the desk secret first.';
+      return;
+    }
+    activeDraftId = id;
+    if (draftActionStatus) draftActionStatus.textContent = 'Loading draft…';
+    try {
+      const res = await fetch(`/api/news/drafts/${id}`, { headers: { ...authHeaders() } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load draft');
+      if (draftPanel) draftPanel.style.display = 'block';
+      if (draftTitle) draftTitle.textContent = data.title || 'Untitled draft';
+      if (draftMeta) {
+        draftMeta.textContent = `${data.source || 'feed'} · suggested file: src/content/guides/${slugify(data.title)}.md${
+          data.aiRewrittenAt ? ` · AI assist ${new Date(data.aiRewrittenAt).toLocaleString()}` : ''
+        }`;
+      }
+      if (draftBody) draftBody.textContent = data.aiRewrite || data.draftMarkdown || '';
+      if (draftActionStatus) draftActionStatus.textContent = data.aiRewrite ? 'Showing AI rewrite (edit before publish).' : 'Showing raw desk draft.';
+      draftPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      if (draftActionStatus) {
+        draftActionStatus.textContent = err instanceof Error ? err.message : 'Could not load draft';
+      }
+    }
+  }
+
   async function load() {
     try {
       const res = await fetch('/api/news/drafts');
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
       const drafts = data.drafts || [];
+      if (!list) return;
+      list.replaceChildren();
       if (!drafts.length) {
-        status.textContent = 'No drafts yet. Cron runs every 6 hours after KV namespaces are live.';
+        if (status) {
+          status.textContent =
+            data.warning || 'No drafts yet. Cron runs every 6 hours after KV namespaces are live.';
+        }
         return;
       }
-      status.textContent = `${drafts.length} draft(s). Last run meta: ${data.lastRun || 'n/a'}`;
-      list.innerHTML = '';
+      if (status) status.textContent = `${drafts.length} draft(s). Last run meta: ${data.lastRun || 'n/a'}`;
+
       for (const d of drafts) {
         const href = safeHttpUrl(d.url);
-        if (!href) continue;
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = href;
-        a.rel = 'noopener noreferrer';
-        a.target = '_blank';
+        const row = document.createElement('article');
+        row.style.borderBottom = '1px solid var(--line)';
+        row.style.padding = '1rem 0';
 
         const meta = document.createElement('div');
         meta.className = 'meta';
-        meta.textContent = `${d.source || 'feed'} · ${new Date(d.createdAt).toLocaleString()} · ${d.status || 'draft'}`;
+        meta.style.fontFamily = 'var(--font-ui)';
+        meta.style.fontSize = '0.85rem';
+        meta.style.color = 'var(--mute)';
+        meta.textContent = `${d.source || 'feed'} · ${new Date(d.createdAt).toLocaleString()} · ${d.status || 'draft'}${
+          d.hasAiRewrite ? ' · AI assist ready' : ''
+        }`;
 
         const h3 = document.createElement('h3');
+        h3.style.margin = '0.35rem 0';
         h3.textContent = d.title || 'Untitled draft';
 
         const p = document.createElement('p');
-        p.style.margin = '0.35rem 0 0';
+        p.style.margin = '0 0 0.75rem';
         p.style.color = 'var(--mute)';
         p.textContent = d.summary || '';
 
-        a.append(meta, h3, p);
-        li.appendChild(a);
-        list.appendChild(li);
+        const actions = document.createElement('div');
+        actions.className = 'btn-row';
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'btn btn-primary';
+        openBtn.type = 'button';
+        openBtn.textContent = 'Open for publish';
+        openBtn.addEventListener('click', () => openDraft(d.id));
+
+        actions.appendChild(openBtn);
+        if (href) {
+          const a = document.createElement('a');
+          a.className = 'btn btn-secondary';
+          a.href = href;
+          a.rel = 'noopener noreferrer';
+          a.target = '_blank';
+          a.textContent = 'Source';
+          actions.appendChild(a);
+        }
+
+        row.append(meta, h3, p, actions);
+        list.appendChild(row);
       }
     } catch (err) {
-      status.textContent =
-        err instanceof Error
-          ? `${err.message} — API needs Cloudflare KV bindings after deploy.`
-          : 'Could not load drafts.';
+      if (status) {
+        status.textContent =
+          err instanceof Error
+            ? `${err.message} — API needs Cloudflare KV bindings after deploy.`
+            : 'Could not load drafts.';
+      }
     }
   }
+
+  document.querySelector('[data-save-token]')?.addEventListener('click', () => {
+    const value = tokenInput?.value?.trim() || '';
+    if (!value) {
+      if (staffStatus) staffStatus.textContent = 'Paste a secret first.';
+      return;
+    }
+    sessionStorage.setItem(TOKEN_KEY, value);
+    if (staffStatus) staffStatus.textContent = 'Saved in this browser session.';
+  });
+
+  document.querySelector('[data-clear-token]')?.addEventListener('click', () => {
+    sessionStorage.removeItem(TOKEN_KEY);
+    if (tokenInput) tokenInput.value = '';
+    if (staffStatus) staffStatus.textContent = 'Cleared.';
+  });
+
+  document.querySelector('[data-run-news]')?.addEventListener('click', async () => {
+    if (!getToken()) {
+      if (staffStatus) staffStatus.textContent = 'Save the desk secret first.';
+      return;
+    }
+    if (staffStatus) staffStatus.textContent = 'Running news pull…';
+    try {
+      const res = await fetch('/api/news/run', {
+        method: 'POST',
+        headers: { ...authHeaders() },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Run failed');
+      if (staffStatus) staffStatus.textContent = `Created ${data.created ?? 0} new draft(s).`;
+      await load();
+    } catch (err) {
+      if (staffStatus) staffStatus.textContent = err instanceof Error ? err.message : 'Run failed';
+    }
+  });
+
+  document.querySelector('[data-copy-md]')?.addEventListener('click', async () => {
+    const text = draftBody?.textContent || '';
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    if (draftActionStatus) draftActionStatus.textContent = 'Markdown copied — paste into a new guides/*.md file.';
+  });
+
+  document.querySelector('[data-copy-checklist]')?.addEventListener('click', async () => {
+    const title = draftTitle?.textContent || 'Desk draft';
+    const checklist = [
+      `# Publish checklist — ${title}`,
+      '',
+      '- [ ] Fact-check against primary sources',
+      '- [ ] Evidence grade set',
+      '- [ ] No dosing / protocol language',
+      '- [ ] Internal links added',
+      `- [ ] File path: src/content/guides/${slugify(title)}.md`,
+      '- [ ] Human PR review',
+      '',
+    ].join('\n');
+    await navigator.clipboard.writeText(checklist);
+    if (draftActionStatus) draftActionStatus.textContent = 'Publish checklist copied.';
+  });
+
+  document.querySelector('[data-ai-rewrite]')?.addEventListener('click', async () => {
+    if (!activeDraftId) return;
+    if (!getToken()) {
+      if (draftActionStatus) draftActionStatus.textContent = 'Save the desk secret first.';
+      return;
+    }
+    if (draftActionStatus) draftActionStatus.textContent = 'Running Workers AI rewrite…';
+    try {
+      const res = await fetch(`/api/news/drafts/${activeDraftId}/rewrite`, {
+        method: 'POST',
+        headers: { ...authHeaders() },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Rewrite failed');
+      if (draftBody) draftBody.textContent = data.aiRewrite || '';
+      if (draftActionStatus) draftActionStatus.textContent = 'AI rewrite saved on draft — still needs human edit.';
+      await load();
+    } catch (err) {
+      if (draftActionStatus) {
+        draftActionStatus.textContent = err instanceof Error ? err.message : 'Rewrite failed';
+      }
+    }
+  });
+
+  if (tokenInput && getToken()) tokenInput.placeholder = 'Secret saved in session';
   load();
 </script>
