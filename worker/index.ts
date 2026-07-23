@@ -343,47 +343,154 @@ function safeHttpUrl(value: string): string | null {
 
 function parseRssItems(xml: string, _source: string, limit = 8): { title: string; url: string; summary: string; publishedAt: string }[] {
   const items: { title: string; url: string; summary: string; publishedAt: string }[] = [];
-  const blocks = xml.split(/<item[\s>]/i).slice(1);
-  for (const block of blocks) {
+
+  // RSS 2.0 <item>
+  const rssBlocks = xml.split(/<item[\s>]/i).slice(1);
+  for (const block of rssBlocks) {
     if (items.length >= limit) break;
     const title = stripHtml((block.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').slice(0, 300);
-    const linkRaw = stripHtml((block.match(/<link[^>]*>([\s\S]*?)<\/link>/i) || [])[1] || '');
-    const link = safeHttpUrl(linkRaw);
+    const linkEnclosed = stripHtml((block.match(/<link[^>]*>([\s\S]*?)<\/link>/i) || [])[1] || '');
+    const linkHref = ((block.match(/<link[^>]*href=["']([^"']+)["']/i) || [])[1] || '').trim();
+    const guid = stripHtml((block.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i) || [])[1] || '');
+    const link = safeHttpUrl(linkEnclosed) || safeHttpUrl(linkHref) || safeHttpUrl(guid);
     const desc = stripHtml((block.match(/<description[^>]*>([\s\S]*?)<\/description>/i) || [])[1] || '').slice(0, 280);
     const pub = stripHtml((block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i) || [])[1] || new Date().toISOString());
+    if (!title || !link) continue;
+    items.push({ title, url: link, summary: desc, publishedAt: pub });
+  }
+  if (items.length) return items;
+
+  // Atom <entry>
+  const atomBlocks = xml.split(/<entry[\s>]/i).slice(1);
+  for (const block of atomBlocks) {
+    if (items.length >= limit) break;
+    const title = stripHtml((block.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').slice(0, 300);
+    const linkHref =
+      ((block.match(/<link[^>]*rel=["']alternate["'][^>]*href=["']([^"']+)["']/i) || [])[1] ||
+        (block.match(/<link[^>]*href=["']([^"']+)["']/i) || [])[1] ||
+        '')
+        .trim();
+    const link = safeHttpUrl(linkHref);
+    const desc = stripHtml(
+      (block.match(/<summary[^>]*>([\s\S]*?)<\/summary>/i) ||
+        block.match(/<content[^>]*>([\s\S]*?)<\/content>/i) ||
+        [])[1] || '',
+    ).slice(0, 280);
+    const pub = stripHtml(
+      (block.match(/<updated[^>]*>([\s\S]*?)<\/updated>/i) ||
+        block.match(/<published[^>]*>([\s\S]*?)<\/published>/i) ||
+        [])[1] || new Date().toISOString(),
+    );
     if (!title || !link) continue;
     items.push({ title, url: link, summary: desc, publishedAt: pub });
   }
   return items;
 }
 
-async function fetchFeeds(): Promise<{ title: string; url: string; summary: string; publishedAt: string; source: string }[]> {
+const PEPTIDE_HINT =
+  /\b(peptide|peptides|glp-?1|semaglutide|tirzepatide|retatrutide|bpc-?157|tesamorelin|incretin|ozempic|wegovy|mounjaro|glucagon|amino acid|polypeptide|protein therapeutic|weight[- ]loss drug|obesity drug)\b/i;
+
+type FeedResult = {
+  source: string;
+  ok: boolean;
+  status?: number;
+  parsed: number;
+  kept: number;
+  error?: string;
+};
+
+async function fetchFeeds(): Promise<{
+  items: { title: string; url: string; summary: string; publishedAt: string; source: string }[];
+  feeds: FeedResult[];
+}> {
+  // Prefer publisher RSS (Nature / ScienceDaily) — Google News often returns empty/HTML from Workers.
   const simpleFeeds = [
     {
-      source: 'Google News peptides',
-      url: 'https://news.google.com/rss/search?q=peptide+OR+%22research+peptide%22+OR+semaglutide+OR+%22BPC-157%22&hl=en-US&gl=US&ceid=US:en',
+      source: 'Nature — peptides',
+      url: 'https://www.nature.com/subjects/peptides.rss',
+      requireHint: false,
     },
     {
-      source: 'Google News GLP-1',
-      url: 'https://news.google.com/rss/search?q=GLP-1+OR+retatrutide+OR+tirzepatide&hl=en-US&gl=US&ceid=US:en',
+      source: 'Nature — peptide hormones',
+      url: 'https://www.nature.com/subjects/peptide-hormones.rss',
+      requireHint: false,
+    },
+    {
+      source: 'ScienceDaily — obesity',
+      url: 'https://www.sciencedaily.com/rss/health_medicine/obesity.xml',
+      requireHint: true,
+    },
+    {
+      source: 'ScienceDaily — diabetes',
+      url: 'https://www.sciencedaily.com/rss/health_medicine/diabetes.xml',
+      requireHint: true,
+    },
+    {
+      source: 'ScienceDaily — pharmacology',
+      url: 'https://www.sciencedaily.com/rss/health_medicine/pharmacology.xml',
+      requireHint: true,
+    },
+    {
+      source: 'Google News — peptides',
+      url: 'https://news.google.com/rss/search?q=peptide%20OR%20semaglutide%20OR%20GLP-1%20OR%20BPC-157&hl=en-US&gl=US&ceid=US:en',
+      requireHint: false,
+    },
+    {
+      source: 'Google News — GLP-1',
+      url: 'https://news.google.com/rss/search?q=GLP-1%20OR%20retatrutide%20OR%20tirzepatide&hl=en-US&gl=US&ceid=US:en',
+      requireHint: false,
     },
   ];
 
   const out: { title: string; url: string; summary: string; publishedAt: string; source: string }[] = [];
+  const feeds: FeedResult[] = [];
+
   for (const feed of simpleFeeds) {
+    const stat: FeedResult = { source: feed.source, ok: false, parsed: 0, kept: 0 };
     try {
       const res = await fetch(feed.url, {
-        headers: { 'User-Agent': 'AminoBriefBot/1.0 (+https://aminobrief.com)' },
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (compatible; AminoBriefBot/1.2; +https://aminobrief.com; research-literacy desk)',
+          Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+        },
+        redirect: 'follow',
       });
-      if (!res.ok) continue;
+      stat.status = res.status;
+      if (!res.ok) {
+        stat.error = `HTTP ${res.status}`;
+        feeds.push(stat);
+        continue;
+      }
       const xml = await res.text();
-      const items = parseRssItems(xml, feed.source, 6);
-      for (const item of items) out.push({ ...item, source: feed.source });
-    } catch {
-      // continue other feeds
+      if (/<!doctype html>/i.test(xml.slice(0, 200)) || /<html[\s>]/i.test(xml.slice(0, 300))) {
+        stat.error = 'HTML response (feed blocked or wrong URL)';
+        feeds.push(stat);
+        continue;
+      }
+      const items = parseRssItems(xml, feed.source, 12);
+      stat.parsed = items.length;
+      for (const item of items) {
+        if (feed.requireHint && !PEPTIDE_HINT.test(`${item.title} ${item.summary}`)) continue;
+        out.push({ ...item, source: feed.source });
+        stat.kept += 1;
+      }
+      stat.ok = true;
+    } catch (err) {
+      stat.error = err instanceof Error ? err.message : 'fetch failed';
     }
+    feeds.push(stat);
   }
-  return out;
+
+  // de-dupe by URL within this run
+  const seen = new Set<string>();
+  const unique = out.filter((item) => {
+    if (seen.has(item.url)) return false;
+    seen.add(item.url);
+    return true;
+  });
+
+  return { items: unique, feeds };
 }
 
 function draftFromItem(item: { title: string; url: string; summary: string; publishedAt: string; source: string }): string {
@@ -423,15 +530,20 @@ Educational desk note only. Not medical advice.
 `;
 }
 
-export async function runNewsLoop(env: Env): Promise<{ created: number; drafts: NewsItem[] }> {
+export async function runNewsLoop(env: Env): Promise<{
+  created: number;
+  drafts: NewsItem[];
+  fetched: number;
+  feeds: FeedResult[];
+}> {
   if (!env.NEWS_DRAFTS) {
-    return { created: 0, drafts: [] };
+    return { created: 0, drafts: [], fetched: 0, feeds: [] };
   }
   const store = env.NEWS_DRAFTS;
-  const items = await fetchFeeds();
+  const { items, feeds } = await fetchFeeds();
   const created: NewsItem[] = [];
 
-  for (const item of items.slice(0, 10)) {
+  for (const item of items.slice(0, 15)) {
     const id = crypto.randomUUID();
     const draft: NewsItem = {
       id,
@@ -456,10 +568,15 @@ export async function runNewsLoop(env: Env): Promise<{ created: number; drafts: 
 
   await store.put(
     'meta:last-run',
-    JSON.stringify({ at: new Date().toISOString(), created: created.length }),
+    JSON.stringify({
+      at: new Date().toISOString(),
+      created: created.length,
+      fetched: items.length,
+      feeds,
+    }),
   );
 
-  return { created: created.length, drafts: created };
+  return { created: created.length, drafts: created, fetched: items.length, feeds };
 }
 
 async function listDrafts(env: Env): Promise<NewsItem[]> {
