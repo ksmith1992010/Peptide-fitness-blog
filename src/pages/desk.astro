@@ -24,7 +24,7 @@ const publishSteps = [
       <p class="eyebrow">Newsroom</p>
       <h1>Desk drafts</h1>
       <p class="lede" style="max-width: 42ch;">
-        Cron pulls feeds every 6 hours and stages drafts here. Nothing auto-publishes to Guides.
+        Cron pulls Nature + ScienceDaily (primary) and Google News (best-effort) every 6 hours and stages drafts here. Nothing auto-publishes to Guides.
       </p>
       <p class="disclaimer">
         Staff tools below need <code>NEWS_TRIGGER_SECRET</code>. Token stays in your browser session only.
@@ -162,7 +162,24 @@ const publishSteps = [
         }
         return;
       }
-      if (status) status.textContent = `${drafts.length} draft(s). Last run meta: ${data.lastRun || 'n/a'}`;
+      if (status) {
+        let last = 'n/a';
+        try {
+          const meta = typeof data.lastRun === 'string' ? JSON.parse(data.lastRun) : data.lastRun;
+          if (meta?.at) {
+            const feedBits = Array.isArray(meta.feeds)
+              ? meta.feeds
+                  .map((f) => `${f.source}: ${f.ok ? `kept ${f.kept}/${f.parsed}` : f.error || 'fail'}`)
+                  .slice(0, 6)
+                  .join(' · ')
+              : '';
+            last = `${meta.at} · created ${meta.created ?? 0} / fetched ${meta.fetched ?? '?'} ${feedBits}`;
+          }
+        } catch {
+          last = String(data.lastRun || 'n/a');
+        }
+        status.textContent = `${drafts.length} draft(s). Last run: ${last}`;
+      }
 
       for (const d of drafts) {
         const href = safeHttpUrl(d.url);
@@ -253,7 +270,13 @@ const publishSteps = [
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Run failed');
-      if (staffStatus) staffStatus.textContent = `Created ${data.created ?? 0} new draft(s).`;
+      if (staffStatus) {
+        const feedBits = (data.feeds || [])
+          .map((f) => `${f.source}: ${f.ok ? `kept ${f.kept}/${f.parsed}` : f.error || 'fail'}`)
+          .slice(0, 6)
+          .join(' · ');
+        staffStatus.textContent = `Created ${data.created ?? 0} new draft(s) from ${data.fetched ?? 0} fetched. ${feedBits}`;
+      }
       await load();
     } catch (err) {
       if (staffStatus) staffStatus.textContent = err instanceof Error ? err.message : 'Run failed';
