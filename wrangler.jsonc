@@ -23,3 +23,5 @@
     "enabled": true
   }
 }
+
+# Deploy: KV placeholders removed — bind real namespaces in dashboard after first green deploy.
