@@ -1,5 +1,5 @@
-# Amino Brief — static Astro site on Cloudflare Pages / Workers Assets
-name = "amino-brief"
+# Amino Brief site — Cloudflare Workers static assets (Git build)
+name = "Peptide-fitness-blog"
 compatibility_date = "2026-07-23"
 
 [assets]

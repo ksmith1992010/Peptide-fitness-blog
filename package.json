@@ -11,7 +11,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "pages:deploy": "npm run build && wrangler pages deploy dist --project-name=amino-brief"
+    "pages:deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.3",

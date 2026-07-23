@@ -27,37 +27,32 @@ npm run preview
 
 ## Deploy on Cloudflare (Git)
 
-### Option A — Dashboard Git integration (recommended)
+### Option A — Cloudflare dashboard Git connect (recommended)
 
-1. Push this repo to GitHub (`main`).
-2. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → **Import Git repository**.
-3. Select `ksmith1992010/Peptide-fitness-blog`.
-4. Build settings:
+1. Merge the Cloudflare PR into `main` (so `wrangler.toml` is on the production branch).
+2. In Cloudflare → **Workers & Pages** → create from GitHub repo `ksmith1992010/Peptide-fitness-blog`.
+3. Use these settings:
 
 | Setting | Value |
 |---|---|
-| Project name | `amino-brief` |
-| Production branch | `main` |
+| Project name | `Peptide-fitness-blog` |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
-| Environment variable | `NODE_VERSION=22` |
+| Deploy command | `npx wrangler deploy` |
+| Node version (Advanced) | `22` |
 
-5. **Save and Deploy**. Cloudflare builds from Git on every push to `main`.
-6. Add custom domain `aminobrief.com` under the project’s **Custom domains**.
+4. Click **Deploy**.
+5. Later: attach custom domain `aminobrief.com`.
 
 ### Option B — GitHub Actions + Wrangler
 
-1. Create a Cloudflare API token (Account → Pages → Edit) and note your Account ID.
-2. Add GitHub repo secrets:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
-3. Push to `main` — `.github/workflows/deploy-cloudflare.yml` builds and runs `wrangler pages deploy`.
+1. Add GitHub secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+2. Push to `main` — the workflow builds and runs `wrangler deploy`.
 
 ### Local direct upload
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name=amino-brief
+npx wrangler deploy
 ```
 
 ## Content
