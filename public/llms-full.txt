@@ -6,11 +6,12 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 ## Guides — literacy
 - https://aminobrief.com/guides/what-peptides-actually-are
 - https://aminobrief.com/guides/approved-vs-research-compounds
-- https://aminobrief.com/guides/how-to-read-a-coa
-- https://aminobrief.com/guides/why-ruo-labels-exist
+- https://aminobrief.com/guides/how-to-read-a-coa (how to read a peptide COA)
+- https://aminobrief.com/guides/why-ruo-labels-exist (research use only meaning)
 - https://aminobrief.com/guides/how-to-evaluate-a-peptide-source
 - https://aminobrief.com/guides/evidence-tiers-cell-to-human
 - https://aminobrief.com/guides/reconstitution-math-without-the-guru
+- https://aminobrief.com/tools/reconstitution (peptide reconstitution calculator)
 - https://aminobrief.com/guides/storage-and-cold-chain-literacy
 - https://aminobrief.com/guides/common-peptide-myths
 - https://aminobrief.com/guides/reading-peptide-papers-without-the-hype
