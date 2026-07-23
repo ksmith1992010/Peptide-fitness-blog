@@ -38,6 +38,7 @@ const publishSteps = [
         <div class="btn-row" style="margin-top: 0.75rem;">
           <button class="btn btn-primary" type="button" data-save-token>Save in session</button>
           <button class="btn btn-secondary" type="button" data-run-news>Run news pull now</button>
+          <button class="btn btn-secondary" type="button" data-broadcast-dry>Newsletter dry-run</button>
           <button class="btn btn-secondary" type="button" data-clear-token>Clear</button>
         </div>
         <p data-staff-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
@@ -249,6 +250,33 @@ const publishSteps = [
       await load();
     } catch (err) {
       if (staffStatus) staffStatus.textContent = err instanceof Error ? err.message : 'Run failed';
+    }
+  });
+
+  document.querySelector('[data-broadcast-dry]')?.addEventListener('click', async () => {
+    if (!getToken()) {
+      if (staffStatus) staffStatus.textContent = 'Save the desk secret first.';
+      return;
+    }
+    if (staffStatus) staffStatus.textContent = 'Checking newsletter audience…';
+    try {
+      const res = await fetch('/api/newsletter/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({
+          subject: 'Amino Brief dry-run',
+          html: '<p>Dry run only</p>',
+          dryRun: true,
+          limit: 50,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Dry-run failed');
+      if (staffStatus) {
+        staffStatus.textContent = `Dry-run OK — ${data.recipientCount ?? 0} recipient(s) would send from ${data.from || 'configured from-address'}.`;
+      }
+    } catch (err) {
+      if (staffStatus) staffStatus.textContent = err instanceof Error ? err.message : 'Dry-run failed';
     }
   });
 

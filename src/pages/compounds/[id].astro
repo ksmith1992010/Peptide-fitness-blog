@@ -22,7 +22,9 @@ const related = guides.filter(
     g.data.tags.some((t) => t.toLowerCase().includes(needle)) ||
     (compound.id === 'bpc-157' && g.id.includes('bpc')) ||
     (compound.id === 'mots-c' && g.id.includes('mots')) ||
-    (compound.id === 'retatrutide' && g.id.includes('retatrutide')),
+    (compound.id === 'retatrutide' && g.id.includes('retatrutide')) ||
+    (compound.id === 'tesamorelin' && g.id.includes('tesamorelin')) ||
+    (compound.id === 'tb-500' && g.id.includes('tb-500')),
 );
 
 const pageSchema = {

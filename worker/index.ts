@@ -1,6 +1,7 @@
 /**
  * Amino Brief Cloudflare Worker
- * - /api/newsletter           POST subscribe → KV
+ * - /api/newsletter           POST subscribe → KV (+ optional Resend audience)
+ * - /api/newsletter/broadcast POST staff broadcast via Resend
  * - /api/checkout             POST Stripe Checkout session
  * - /api/checkout/priced      GET priced SKU list
  * - /api/news/drafts          GET list drafts
@@ -30,6 +31,9 @@ export interface Env {
   /** Optional JSON object: { "slug": "price_xxx", ... } */
   STRIPE_PRICE_JSON?: string;
   PUBLIC_SITE_URL?: string;
+  RESEND_API_KEY?: string;
+  RESEND_AUDIENCE_ID?: string;
+  RESEND_FROM?: string;
 }
 
 interface NewsItem {
@@ -159,20 +163,121 @@ async function handleNewsletter(request: Request, env: Env): Promise<Response> {
   const email = body.email.trim().toLowerCase();
   const key = `email:${email}`;
   const existing = await env.SUBSCRIBERS.get(key);
+  const name = (body.name || '').trim().slice(0, 120);
   if (!existing) {
     await env.SUBSCRIBERS.put(
       key,
       JSON.stringify({
         email,
-        name: (body.name || '').trim().slice(0, 120),
+        name,
         createdAt: new Date().toISOString(),
         source: 'amino-brief-web',
       }),
     );
   }
 
+  // Best-effort Resend audience sync (does not fail the signup UX)
+  if (env.RESEND_API_KEY && env.RESEND_AUDIENCE_ID && !existing) {
+    try {
+      await syncResendContact(env, email, name);
+    } catch {
+      // KV is source of truth; Resend can be backfilled later
+    }
+  }
+
   // Same message whether new or existing — avoid email enumeration
   return json({ message: 'Thanks — you’re on the Amino Brief list (or already were).' }, 200, request);
+}
+
+async function syncResendContact(env: Env, email: string, name: string): Promise<void> {
+  const res = await fetch(`https://api.resend.com/audiences/${env.RESEND_AUDIENCE_ID}/contacts`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      first_name: name || undefined,
+      unsubscribed: false,
+    }),
+  });
+  // 409 = already exists — fine
+  if (!res.ok && res.status !== 409) {
+    throw new Error(`Resend contact sync failed (${res.status})`);
+  }
+}
+
+async function listSubscriberEmails(env: Env, limit = 200): Promise<string[]> {
+  if (!env.SUBSCRIBERS) return [];
+  const emails: string[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await env.SUBSCRIBERS.list({ prefix: 'email:', cursor, limit: 100 });
+    for (const key of page.keys) {
+      const raw = await env.SUBSCRIBERS.get(key.name);
+      if (!raw) continue;
+      try {
+        const row = JSON.parse(raw) as { email?: string };
+        if (row.email && isEmail(row.email)) emails.push(row.email);
+      } catch {
+        // skip
+      }
+      if (emails.length >= limit) return emails;
+    }
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  return emails;
+}
+
+async function handleNewsletterBroadcast(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, request);
+  const denied = requireStaff(request, env);
+  if (denied) return denied;
+  if (!env.RESEND_API_KEY) {
+    return json({ error: 'Set RESEND_API_KEY Worker secret to send broadcasts' }, 503, request);
+  }
+  if (!env.SUBSCRIBERS) {
+    return json({ error: 'SUBSCRIBERS KV not configured' }, 503, request);
+  }
+
+  const body = (await request.json().catch(() => null)) as {
+    subject?: string;
+    html?: string;
+    dryRun?: boolean;
+    limit?: number;
+  } | null;
+
+  const subject = (body?.subject || '').trim().slice(0, 200);
+  const html = (body?.html || '').trim();
+  if (!subject || !html) return json({ error: 'subject and html required' }, 400, request);
+
+  const limit = Math.max(1, Math.min(200, Number(body?.limit || 50)));
+  const recipients = await listSubscriberEmails(env, limit);
+  const from = env.RESEND_FROM || 'Amino Brief <editorial@aminobrief.com>';
+
+  if (body?.dryRun) {
+    return json({ dryRun: true, recipientCount: recipients.length, from, subject }, 200, request);
+  }
+
+  // Send individually to avoid BCC leakage; cap per request
+  let sent = 0;
+  const errors: string[] = [];
+  for (const to of recipients) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to: [to], subject, html }),
+    });
+    if (res.ok) sent += 1;
+    else errors.push(`${to}:${res.status}`);
+  }
+
+  return json({ sent, attempted: recipients.length, errors: errors.slice(0, 10) }, 200, request);
 }
 
 function stripHtml(html: string): string {
@@ -395,6 +500,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
 
   if (url.pathname === '/api/newsletter') return handleNewsletter(request, env);
+  if (url.pathname === '/api/newsletter/broadcast') return handleNewsletterBroadcast(request, env);
   if (url.pathname === '/api/checkout') return handleStripeCheckout(request, env);
 
   if (url.pathname === '/api/news/drafts' && request.method === 'GET') {

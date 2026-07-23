@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const faqs = [
+  {
+    q: 'Is Amino Brief medical advice?',
+    a: 'No. Amino Brief is an educational peptide-literacy site. Nothing here diagnoses, treats, or prescribes. Health decisions belong with a qualified clinician.',
+  },
+  {
+    q: 'Do you sell peptides?',
+    a: 'No. The shop sells accessories only — bacteriostatic water, syringes, cases, and related lab kit. Peptide compounds are not sold on this domain.',
+  },
+  {
+    q: 'Are the reconstitution calculators dosing protocols?',
+    a: 'No. Tools convert units (mg, mL, syringe units) for literacy. They are not prescriptions, medical dosing advice, or permission to use research materials in humans.',
+  },
+  {
+    q: 'What do the evidence grades mean?',
+    a: 'We tag content as FDA-approved context, human evidence, mixed, animal/preclinical, anecdotal, or literacy how-to — so gym lore is not confused with clinical proof. See /evidence.',
+  },
+  {
+    q: 'How do desk drafts become guides?',
+    a: 'A cron stages RSS leads in the newsroom desk. Humans fact-check, grade evidence, and publish via markdown PR. Nothing auto-publishes to the public guide library.',
+  },
+  {
+    q: 'Who writes Amino Brief?',
+    a: 'Amino Brief Editorial publishes under disclosed standards. We do not fake medical credentials. See /authors and /editorial.',
+  },
+];
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<BaseLayout
+  title="FAQ"
+  description="Straight answers: medical advice boundaries, shop policy, evidence grades, tools, and how desk drafts publish."
+  jsonLd={schema}
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">FAQ</p>
+      <h1>Common questions</h1>
+      <p class="lede" style="max-width: 40ch;">Short answers. Full policies live on About, Editorial, and Authors.</p>
+
+      {
+        faqs.map((f) => (
+          <div style="margin-top: 1.75rem;">
+            <h2 style="font-size: 1.35rem;">{f.q}</h2>
+            <p>{f.a}</p>
+          </div>
+        ))
+      }
+
+      <div class="btn-row" style="margin-top: 2rem;">
+        <a class="btn btn-primary" href="/learn">Start learning</a>
+        <a class="btn btn-secondary" href="/about">About + disclaimer</a>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

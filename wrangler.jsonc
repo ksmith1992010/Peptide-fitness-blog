@@ -13,7 +13,7 @@
     "run_worker_first": ["/api/*"]
   },
   // Bind SUBSCRIBERS + NEWS_DRAFTS KV in the Cloudflare dashboard (see docs/OPS-CLOUDFLARE.md).
-  // Optional secrets: NEWS_TRIGGER_SECRET, TURNSTILE_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_PRICE_*
+  // Optional secrets: NEWS_TRIGGER_SECRET, TURNSTILE_*, STRIPE_*, RESEND_*
   "ai": {
     "binding": "AI"
   },

@@ -37,11 +37,21 @@ npx wrangler secret put STRIPE_PRICE_CASE
 #       STRIPE_PRICE_LABELS, STRIPE_PRICE_RECON_KIT
 # or one JSON blob:
 npx wrangler secret put STRIPE_PRICE_JSON
+
+# Newsletter sending (optional Resend)
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put RESEND_AUDIENCE_ID
+npx wrangler secret put RESEND_FROM   # e.g. "Amino Brief <editorial@aminobrief.com>"
 ```
 
 Build-time (Astro): set `PUBLIC_TURNSTILE_SITE_KEY` in the Cloudflare build env if using Turnstile on the form.
 
 Optional: `PUBLIC_SITE_URL=https://aminobrief.com` for Stripe success/cancel URLs.
+
+### Newsletter APIs
+
+- `POST /api/newsletter` — public signup → KV; also syncs to Resend audience when `RESEND_API_KEY` + `RESEND_AUDIENCE_ID` are set
+- `POST /api/newsletter/broadcast` — staff Bearer token; body `{ subject, html, dryRun?, limit? }` sends via Resend (capped)
 
 ## 3. Workers AI
 
