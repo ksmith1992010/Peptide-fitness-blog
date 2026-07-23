@@ -31,11 +31,11 @@ const related = guides.filter(
 
 const pageSchema = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalWebPage',
+  '@type': 'WebPage',
   name: `${compound.name} — research literacy hub`,
   description: compound.summary,
   about: compound.name,
-  lastReviewed: new Date().toISOString().slice(0, 10),
+  dateModified: new Date().toISOString().slice(0, 10),
   audience: 'https://schema.org/Researcher',
 };
 ---
