@@ -5,6 +5,7 @@ import Footer from '../../components/Footer.astro';
 import EvidenceBadge from '../../components/EvidenceBadge.astro';
 import { getCollection, render } from 'astro:content';
 import { getAuthor } from '../../data/authors';
+import { continuePathsForGuide, clusterIdForGuide, seoClusters } from '../../data/seo-clusters';
 
 export async function getStaticPaths() {
   const guides = await getCollection('guides');
@@ -26,6 +27,10 @@ const reviewLabel =
     : guide.data.reviewStatus === 'pending'
       ? 'Clinical review pending'
       : 'Editorial review only — not clinician-reviewed';
+
+const clusterId = clusterIdForGuide(guide);
+const clusterLabel = seoClusters.find((c) => c.id === clusterId)?.shortLabel || 'Literacy';
+const continueLinks = continuePathsForGuide(guide);
 
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -118,22 +123,28 @@ const breadcrumbSchema = {
       <p class="eyebrow" style="font-family: var(--font-ui);">
         <a href="/guides" style="color: inherit;">Guides</a>
         <span aria-hidden="true"> / </span>
-        {guide.data.category}
+        <a href={`/guides?cluster=${clusterId}`} style="color: inherit;">{clusterLabel}</a>
       </p>
       <h1 style="max-width: 14ch;">{guide.data.title}</h1>
-      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 1rem 0 1.5rem; font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
-        <EvidenceBadge level={guide.data.evidence} />
-        <span>
-          Updated {
-            updated.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })
-          }
-        </span>
-        <span>By {author.name}</span>
-        <span>{reviewLabel}</span>
+      <div class="guide-trust">
+        <div class="guide-trust-row">
+          <EvidenceBadge level={guide.data.evidence} />
+          <a href="/evidence">How grades work</a>
+        </div>
+        <div class="guide-trust-row mute">
+          <span>
+            Updated {
+              updated.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            }
+          </span>
+          <span aria-hidden="true">·</span>
+          <a href="/authors">By {author.name}</a>
+        </div>
+        <p class="guide-review">{reviewLabel}</p>
       </div>
       <p class="lede" style="max-width: 42ch;">{guide.data.description}</p>
       <div class="prose" style="margin-top: 2rem;">
@@ -170,6 +181,18 @@ const breadcrumbSchema = {
           criteria are on <a href="/resources/sourcing-notes">Sourcing notes</a>.
         </p>
       </div>
+      <div class="continue-cluster">
+        <h2>Continue in this path</h2>
+        <ul>
+          {
+            continueLinks.map((link) => (
+              <li>
+                <a href={link.path}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
       <p class="disclaimer" style="margin-top: 2.5rem; max-width: var(--read);">
         Educational content only. Amino Brief does not provide medical advice, dosing protocols for human use,
         diagnosis, or treatment recommendations. Talk to a qualified clinician about health decisions.
@@ -178,3 +201,60 @@ const breadcrumbSchema = {
   </article>
   <Footer slot="footer" />
 </BaseLayout>
+
+<style>
+  .guide-trust {
+    display: grid;
+    gap: 0.45rem;
+    margin: 1rem 0 1.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+  }
+
+  .guide-trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+  }
+
+  .guide-trust-row.mute {
+    color: var(--mute);
+  }
+
+  .guide-review {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+
+  .continue-cluster {
+    margin-top: 2.75rem;
+    max-width: var(--read);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .continue-cluster h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .continue-cluster ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+    font-family: var(--font-ui);
+  }
+
+  .continue-cluster a {
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .continue-cluster a:hover {
+    text-decoration: underline;
+  }
+</style>

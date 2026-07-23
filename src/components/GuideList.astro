@@ -1,5 +1,6 @@
 ---
 import EvidenceBadge from './EvidenceBadge.astro';
+import { clusterIdForGuide, seoClusters } from '../data/seo-clusters';
 
 interface GuideItem {
   id: string;
@@ -8,6 +9,7 @@ interface GuideItem {
     description: string;
     category: string;
     evidence: string;
+    tags: string[];
     pubDate: Date;
   };
 }
@@ -17,6 +19,11 @@ interface Props {
 }
 
 const { guides } = Astro.props;
+
+function clusterLabel(guide: GuideItem) {
+  const id = clusterIdForGuide(guide);
+  return seoClusters.find((c) => c.id === id)?.shortLabel || 'Literacy';
+}
 ---
 
 <ul class="link-list">
@@ -27,10 +34,7 @@ const { guides } = Astro.props;
           <div class="meta">
             <EvidenceBadge level={guide.data.evidence} />
             <span style="margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;">
-              {guide.data.category}
-            </span>
-            <span style="margin-left: 0.5rem;">
-              {guide.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+              {clusterLabel(guide)}
             </span>
           </div>
           <h3>{guide.data.title}</h3>

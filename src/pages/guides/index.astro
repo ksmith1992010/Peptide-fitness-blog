@@ -4,19 +4,17 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import EvidenceBadge from '../../components/EvidenceBadge.astro';
 import { getCollection } from 'astro:content';
+import { clusterIdForGuide, seoClusters } from '../../data/seo-clusters';
 
 const guides = (await getCollection('guides')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
-const categoryFilters = [
+const clusterFilters = [
   { id: 'all', label: 'All' },
-  { id: 'safety', label: 'Safety' },
-  { id: 'comparison', label: 'Comparison' },
-  { id: 'protocol', label: 'Protocol' },
-  { id: 'planner', label: 'Planner' },
-  { id: 'basics', label: 'Basics' },
-  { id: 'quality', label: 'Quality' },
+  ...seoClusters
+    .filter((c) => c.id !== 'accessories')
+    .map((c) => ({ id: c.id, label: c.shortLabel })),
 ];
 
 const evidenceFilters = [
@@ -29,70 +27,81 @@ const evidenceFilters = [
 ];
 
 const initialQ = Astro.url.searchParams.get('q')?.trim() ?? '';
+const initialCluster = Astro.url.searchParams.get('cluster')?.trim() || 'all';
 ---
 
-<BaseLayout title="Guides" description="Evidence-tagged peptide awareness guides — safety, quality, comparisons, and basics.">
+<BaseLayout
+  title="Guides"
+  description="Evidence-tagged peptide awareness guides — literacy, sourcing, compounds, media, and methods desk briefs."
+>
   <Header slot="header" />
   <section class="section">
     <div class="container">
       <p class="eyebrow">Guides</p>
       <h1>Research notes with receipts</h1>
-      <p class="lede">Filter by topic or evidence. Every piece carries a badge so you know what kind of claim you’re looking at.</p>
+      <p class="lede">
+        Filter by learning path or evidence grade. Every piece carries a badge so you know what kind of claim you’re
+        looking at.
+      </p>
 
       <div class="field" style="max-width: 28rem; margin-top: 1.25rem;">
         <label for="guide-search">Search</label>
-        <input id="guide-search" type="search" placeholder="COA, retatrutide, storage…" value={initialQ} data-guide-search />
+        <input
+          id="guide-search"
+          type="search"
+          placeholder="COA, retatrutide, cyclic peptide…"
+          value={initialQ}
+          data-guide-search
+        />
       </div>
 
-      <div class="pill-filters" role="toolbar" aria-label="Guide category filters" data-guide-filters style="margin-top: 1rem;">
+      <div class="cluster-filters" role="toolbar" aria-label="Guide path filters" data-guide-filters style="margin-top: 1rem;">
         {
-          categoryFilters.map((f) => (
-            <button type="button" data-filter={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>
+          clusterFilters.map((f) => (
+            <button
+              type="button"
+              data-filter={f.id}
+              aria-pressed={f.id === initialCluster ? 'true' : 'false'}
+            >
               {f.label}
             </button>
           ))
         }
       </div>
 
-      <div class="pill-filters" role="toolbar" aria-label="Evidence filters" data-evidence-filters style="margin-top: 0.5rem;">
-        {
-          evidenceFilters.map((f) => (
-            <button type="button" data-evidence={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>
-              {f.label}
-            </button>
-          ))
-        }
+      <div class="field" style="max-width: 16rem; margin-top: 0.75rem;">
+        <label for="evidence-filter">Evidence</label>
+        <select id="evidence-filter" data-evidence-select>
+          {evidenceFilters.map((f) => <option value={f.id}>{f.label}</option>)}
+        </select>
       </div>
 
       <p data-guide-count style="font-family: var(--font-ui); color: var(--mute); margin: 1rem 0 0;"></p>
 
       <ul class="link-list" data-guide-list>
         {
-          guides.map((guide) => (
-            <li
-              data-category={guide.data.category}
-              data-evidence={guide.data.evidence}
-              data-search={`${guide.data.title} ${guide.data.description} ${guide.data.tags.join(' ')} ${guide.id}`.toLowerCase()}
-            >
-              <a href={`/guides/${guide.id}`}>
-                <div class="meta">
-                  <EvidenceBadge level={guide.data.evidence} />
-                  <span style="margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;">
-                    {guide.data.category}
-                  </span>
-                  <span style="margin-left: 0.5rem;">
-                    {guide.data.pubDate.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </div>
-                <h3>{guide.data.title}</h3>
-                <p style="margin: 0.35rem 0 0; color: var(--mute);">{guide.data.description}</p>
-              </a>
-            </li>
-          ))
+          guides.map((guide) => {
+            const cluster = clusterIdForGuide(guide);
+            const clusterLabel = seoClusters.find((c) => c.id === cluster)?.shortLabel || 'Literacy';
+            return (
+              <li
+                data-cluster={cluster}
+                data-evidence={guide.data.evidence}
+                data-search={`${guide.data.title} ${guide.data.description} ${guide.data.tags.join(' ')} ${guide.id} ${clusterLabel}`.toLowerCase()}
+              >
+                <a href={`/guides/${guide.id}`}>
+                  <div class="meta">
+                    <EvidenceBadge level={guide.data.evidence} />
+                    <span style="margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;">
+                      {clusterLabel}
+                    </span>
+                  </div>
+                  <h3>{guide.data.title}</h3>
+                  <p style="margin: 0.35rem 0 0; color: var(--mute);">{guide.data.description}</p>
+                </a>
+              </li>
+            );
+          })
         }
       </ul>
     </div>
@@ -102,23 +111,35 @@ const initialQ = Astro.url.searchParams.get('q')?.trim() ?? '';
 
 <script>
   const categoryToolbar = document.querySelector('[data-guide-filters]');
-  const evidenceToolbar = document.querySelector('[data-evidence-filters]');
+  const evidenceSelect = document.querySelector('[data-evidence-select]');
   const list = document.querySelector('[data-guide-list]');
   const search = document.querySelector('[data-guide-search]');
   const count = document.querySelector('[data-guide-count]');
-  let category = 'all';
+  const params = new URLSearchParams(window.location.search);
+  let cluster = params.get('cluster') || 'all';
   let evidence = 'all';
+
+  if (evidenceSelect instanceof HTMLSelectElement) {
+    evidenceSelect.value = 'all';
+  }
+
+  function syncClusterButtons() {
+    categoryToolbar?.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', b.getAttribute('data-filter') === cluster ? 'true' : 'false');
+    });
+  }
+  syncClusterButtons();
 
   function apply() {
     if (!list) return;
-    const q = (search?.value || '').trim().toLowerCase();
+    const q = (search instanceof HTMLInputElement ? search.value : '').trim().toLowerCase();
     let visible = 0;
-    list.querySelectorAll('li[data-category]').forEach((item) => {
+    list.querySelectorAll('li[data-cluster]').forEach((item) => {
       const el = item;
-      const catOk = category === 'all' || el.dataset.category === category;
+      const clusterOk = cluster === 'all' || el.dataset.cluster === cluster;
       const evOk = evidence === 'all' || el.dataset.evidence === evidence;
       const qOk = !q || (el.dataset.search || '').includes(q);
-      const show = catOk && evOk && qOk;
+      const show = clusterOk && evOk && qOk;
       el.hidden = !show;
       if (show) visible += 1;
     });
@@ -126,26 +147,21 @@ const initialQ = Astro.url.searchParams.get('q')?.trim() ?? '';
     const url = new URL(window.location.href);
     if (q) url.searchParams.set('q', q);
     else url.searchParams.delete('q');
+    if (cluster && cluster !== 'all') url.searchParams.set('cluster', cluster);
+    else url.searchParams.delete('cluster');
     window.history.replaceState({}, '', url);
   }
 
   categoryToolbar?.addEventListener('click', (event) => {
     const btn = event.target.closest('button[data-filter]');
     if (!btn) return;
-    category = btn.dataset.filter || 'all';
-    categoryToolbar.querySelectorAll('button').forEach((b) => {
-      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-    });
+    cluster = btn.dataset.filter || 'all';
+    syncClusterButtons();
     apply();
   });
 
-  evidenceToolbar?.addEventListener('click', (event) => {
-    const btn = event.target.closest('button[data-evidence]');
-    if (!btn) return;
-    evidence = btn.dataset.evidence || 'all';
-    evidenceToolbar.querySelectorAll('button').forEach((b) => {
-      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-    });
+  evidenceSelect?.addEventListener('change', () => {
+    evidence = evidenceSelect instanceof HTMLSelectElement ? evidenceSelect.value : 'all';
     apply();
   });
 
