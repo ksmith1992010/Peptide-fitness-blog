@@ -6,6 +6,11 @@ dist/
 # Netlify
 .netlify/
 
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+.cfstate
+
 # dependencies
 node_modules/
 

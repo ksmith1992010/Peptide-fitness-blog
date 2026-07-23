@@ -1,0 +1,13 @@
+# Cloudflare Pages build settings (Git-connected dashboard import)
+# Production branch: main
+# Build command: npm run build
+# Build output directory: dist
+# Node version: 22 (set in environment variables or .nvmrc)
+
+[build]
+command = "npm run build"
+cwd = "."
+watch_dir = ["src", "public", "package.json"]
+
+[build.environment]
+NODE_VERSION = "22"
