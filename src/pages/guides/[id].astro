@@ -4,6 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import EvidenceBadge from '../../components/EvidenceBadge.astro';
 import { getCollection, render } from 'astro:content';
+import { getAuthor } from '../../data/authors';
 
 export async function getStaticPaths() {
   const guides = await getCollection('guides');
@@ -16,6 +17,15 @@ export async function getStaticPaths() {
 const { guide } = Astro.props;
 const { Content } = await render(guide);
 const updated = guide.data.updatedDate ?? guide.data.pubDate;
+const author = getAuthor(guide.data.authorId) ?? getAuthor('editorial')!;
+const reviewer = guide.data.reviewedById ? getAuthor(guide.data.reviewedById) : undefined;
+
+const reviewLabel =
+  guide.data.reviewStatus === 'reviewed' && reviewer
+    ? `Clinician-reviewed by ${reviewer.name}`
+    : guide.data.reviewStatus === 'pending'
+      ? 'Clinical review pending'
+      : 'Editorial review only — not clinician-reviewed';
 
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -26,7 +36,7 @@ const articleSchema = {
   dateModified: updated.toISOString(),
   author: {
     '@type': 'Organization',
-    name: 'Amino Brief Editorial',
+    name: author.name,
   },
   publisher: {
     '@type': 'Organization',
@@ -59,6 +69,14 @@ const faqSchema = {
         text: `This guide is tagged ${guide.data.evidence}. Amino Brief separates FDA-approved context, human evidence, mixed evidence, animal/preclinical work, anecdotal claims, and literacy how-tos so readers do not confuse gym lore with clinical proof.`,
       },
     },
+    {
+      '@type': 'Question',
+      name: 'Was this piece clinician-reviewed?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `${reviewLabel}. See /authors for the clinical review seat status.`,
+      },
+    },
   ],
 };
 ---
@@ -85,11 +103,28 @@ const faqSchema = {
             })
           }
         </span>
-        <span>By Amino Brief Editorial</span>
+        <span>By {author.name}</span>
+        <span>{reviewLabel}</span>
       </div>
       <p class="lede" style="max-width: 42ch;">{guide.data.description}</p>
       <div class="prose" style="margin-top: 2rem;">
         <Content />
+        {
+          guide.data.sources.length > 0 && (
+            <>
+              <h2>Sources</h2>
+              <ul>
+                {guide.data.sources.map((s) => (
+                  <li>
+                    <a href={s.url} rel="noopener noreferrer">
+                      {s.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
+        }
         <h2>FAQ</h2>
         <h3>Is this medical advice?</h3>
         <p>
@@ -99,6 +134,11 @@ const faqSchema = {
         <p>
           See our <a href="/evidence">evidence grades</a>. Animal or anecdotal tags mean you should not mentally
           upgrade the claim into proven human outcomes.
+        </p>
+        <h3>Was a clinician involved?</h3>
+        <p>
+          {reviewLabel}. Seat status and application notes live on <a href="/authors">Authors</a>. Standing quality
+          criteria are on <a href="/resources/sourcing-notes">Sourcing notes</a>.
         </p>
       </div>
       <p class="disclaimer" style="margin-top: 2.5rem; max-width: var(--read);">

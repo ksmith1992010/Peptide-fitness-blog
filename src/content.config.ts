@@ -13,6 +13,25 @@ const guides = defineCollection({
     evidence: z.enum(['fda-approved', 'human', 'mixed', 'animal', 'anecdotal', 'literacy']),
     tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
+    /** Matches authors.ts id — defaults to editorial on the page */
+    authorId: z.string().default('editorial'),
+    /**
+     * Clinical / medical review disclosure for YMYL-adjacent pieces.
+     * `editorial-only` = no clinician review seated for this piece.
+     * `pending` = queued for external review.
+     * `reviewed` = requires reviewedById of a seated clinician author.
+     */
+    reviewStatus: z.enum(['editorial-only', 'pending', 'reviewed']).default('editorial-only'),
+    reviewedById: z.string().optional(),
+    reviewedAt: z.coerce.date().optional(),
+    sources: z
+      .array(
+        z.object({
+          label: z.string(),
+          url: z.string().url(),
+        }),
+      )
+      .default([]),
   }),
 });
 

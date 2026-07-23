@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { sourcingNotes } from '../../data/sourcing-notes';
+---
+
+<BaseLayout
+  title="Sourcing notes"
+  description="Standing Amino Brief criteria for documentation, RUO boundaries, accessories-only shop policy, and clinical-review disclosure."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Quality</p>
+      <h1>Sourcing notes</h1>
+      <p class="lede" style="max-width: 42ch;">
+        Criteria-first literacy. Vendor names are examples at best — never a substitute for paperwork.
+      </p>
+
+      <ul class="link-list" style="margin-top: 2rem;">
+        {
+          sourcingNotes.map((note) => (
+            <li>
+              <div style="padding: 0.35rem 0;">
+                <h3 style="margin: 0 0 0.4rem;">{note.title}</h3>
+                <p style="margin: 0; color: var(--mute);">{note.body}</p>
+                {note.href && (
+                  <p style="margin: 0.55rem 0 0; font-family: var(--font-ui); font-size: 0.9rem;">
+                    <a href={note.href}>{note.href.startsWith('http') ? 'External link' : 'Read more'} →</a>
+                  </p>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="btn-row" style="margin-top: 2rem;">
+        <a class="btn btn-primary" href="/guides/how-to-evaluate-a-peptide-source">Sourcing checklist</a>
+        <a class="btn btn-secondary" href="/editorial">Editorial standards</a>
+        <a class="btn btn-secondary" href="/authors">Authors & review seat</a>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

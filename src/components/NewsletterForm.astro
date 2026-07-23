@@ -34,6 +34,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
   <p class="nl-status" data-nl-status role="status" aria-live="polite"></p>
   <p class="disclaimer" style="margin-top: 0.85rem; margin-bottom: 0;">
     Educational emails only. Unsubscribe anytime. We don’t sell your address.
+    {turnstileSiteKey ? ' Protected by Cloudflare Turnstile.' : ''}
   </p>
 </form>
 
