@@ -9,7 +9,7 @@ const guides = (await getCollection('guides')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
-const filters = [
+const categoryFilters = [
   { id: 'all', label: 'All' },
   { id: 'safety', label: 'Safety' },
   { id: 'comparison', label: 'Comparison' },
@@ -18,6 +18,17 @@ const filters = [
   { id: 'basics', label: 'Basics' },
   { id: 'quality', label: 'Quality' },
 ];
+
+const evidenceFilters = [
+  { id: 'all', label: 'Any evidence' },
+  { id: 'fda-approved', label: 'FDA context' },
+  { id: 'human', label: 'Human' },
+  { id: 'mixed', label: 'Mixed' },
+  { id: 'animal', label: 'Animal' },
+  { id: 'literacy', label: 'Literacy' },
+];
+
+const initialQ = Astro.url.searchParams.get('q')?.trim() ?? '';
 ---
 
 <BaseLayout title="Guides" description="Evidence-tagged peptide awareness guides — safety, quality, comparisons, and basics.">
@@ -26,11 +37,16 @@ const filters = [
     <div class="container">
       <p class="eyebrow">Guides</p>
       <h1>Research notes with receipts</h1>
-      <p class="lede">Filter by topic. Every piece carries an evidence badge so you know what kind of claim you’re looking at.</p>
+      <p class="lede">Filter by topic or evidence. Every piece carries a badge so you know what kind of claim you’re looking at.</p>
 
-      <div class="pill-filters" role="toolbar" aria-label="Guide filters" data-guide-filters>
+      <div class="field" style="max-width: 28rem; margin-top: 1.25rem;">
+        <label for="guide-search">Search</label>
+        <input id="guide-search" type="search" placeholder="COA, retatrutide, storage…" value={initialQ} data-guide-search />
+      </div>
+
+      <div class="pill-filters" role="toolbar" aria-label="Guide category filters" data-guide-filters style="margin-top: 1rem;">
         {
-          filters.map((f) => (
+          categoryFilters.map((f) => (
             <button type="button" data-filter={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>
               {f.label}
             </button>
@@ -38,10 +54,26 @@ const filters = [
         }
       </div>
 
+      <div class="pill-filters" role="toolbar" aria-label="Evidence filters" data-evidence-filters style="margin-top: 0.5rem;">
+        {
+          evidenceFilters.map((f) => (
+            <button type="button" data-evidence={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>
+              {f.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <p data-guide-count style="font-family: var(--font-ui); color: var(--mute); margin: 1rem 0 0;"></p>
+
       <ul class="link-list" data-guide-list>
         {
           guides.map((guide) => (
-            <li data-category={guide.data.category}>
+            <li
+              data-category={guide.data.category}
+              data-evidence={guide.data.evidence}
+              data-search={`${guide.data.title} ${guide.data.description} ${guide.data.tags.join(' ')} ${guide.id}`.toLowerCase()}
+            >
               <a href={`/guides/${guide.id}`}>
                 <div class="meta">
                   <EvidenceBadge level={guide.data.evidence} />
@@ -69,20 +101,54 @@ const filters = [
 </BaseLayout>
 
 <script>
-  const toolbar = document.querySelector('[data-guide-filters]');
+  const categoryToolbar = document.querySelector('[data-guide-filters]');
+  const evidenceToolbar = document.querySelector('[data-evidence-filters]');
   const list = document.querySelector('[data-guide-list]');
-  if (toolbar && list) {
-    toolbar.addEventListener('click', (event) => {
-      const btn = event.target.closest('button[data-filter]');
-      if (!btn) return;
-      const filter = btn.dataset.filter;
-      toolbar.querySelectorAll('button').forEach((b) => {
-        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-      });
-      list.querySelectorAll('li[data-category]').forEach((item) => {
-        const show = filter === 'all' || item.dataset.category === filter;
-        item.hidden = !show;
-      });
+  const search = document.querySelector('[data-guide-search]');
+  const count = document.querySelector('[data-guide-count]');
+  let category = 'all';
+  let evidence = 'all';
+
+  function apply() {
+    if (!list) return;
+    const q = (search?.value || '').trim().toLowerCase();
+    let visible = 0;
+    list.querySelectorAll('li[data-category]').forEach((item) => {
+      const el = item;
+      const catOk = category === 'all' || el.dataset.category === category;
+      const evOk = evidence === 'all' || el.dataset.evidence === evidence;
+      const qOk = !q || (el.dataset.search || '').includes(q);
+      const show = catOk && evOk && qOk;
+      el.hidden = !show;
+      if (show) visible += 1;
     });
+    if (count) count.textContent = `${visible} guide${visible === 1 ? '' : 's'} shown`;
+    const url = new URL(window.location.href);
+    if (q) url.searchParams.set('q', q);
+    else url.searchParams.delete('q');
+    window.history.replaceState({}, '', url);
   }
+
+  categoryToolbar?.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-filter]');
+    if (!btn) return;
+    category = btn.dataset.filter || 'all';
+    categoryToolbar.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    apply();
+  });
+
+  evidenceToolbar?.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-evidence]');
+    if (!btn) return;
+    evidence = btn.dataset.evidence || 'all';
+    evidenceToolbar.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+    });
+    apply();
+  });
+
+  search?.addEventListener('input', apply);
+  apply();
 </script>

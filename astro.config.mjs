@@ -9,7 +9,7 @@ export default defineConfig({
   integrations: [
     mdx(),
     sitemap({
-      filter: (page) => !page.includes('/desk'),
+      filter: (page) => !page.includes('/desk') && !page.includes('/outreach'),
     }),
   ],
 });

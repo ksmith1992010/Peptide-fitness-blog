@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import EvidenceBadge from '../../components/EvidenceBadge.astro';
+import { peptides } from '../../data/peptides';
+
+const compounds = peptides.filter((p) => p.id !== 'generic');
+---
+
+<BaseLayout
+  title="Compounds"
+  description="Research-framed compound hubs — evidence notes, tools, and related Amino Brief guides."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Compound clusters</p>
+      <h1>Know the name before the hype</h1>
+      <p class="lede">Each hub links evidence context, duration notes, and tools. Not protocols.</p>
+      <ul class="link-list" style="margin-top: 2rem;">
+        {
+          compounds.map((c) => (
+            <li>
+              <a href={`/compounds/${c.id}`}>
+                <div class="meta">
+                  <EvidenceBadge level={c.evidence} />
+                  <span style="margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;">
+                    {c.category}
+                  </span>
+                </div>
+                <h3>{c.name}</h3>
+                <p style="margin: 0.35rem 0 0; color: var(--mute);">{c.summary}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

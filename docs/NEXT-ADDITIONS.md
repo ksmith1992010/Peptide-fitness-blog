@@ -1,12 +1,17 @@
-# Next additions (after this ship)
+# Next additions
 
-1. **Stripe Checkout** for shop SKUs + tax/shipping
-2. **Resend / Mailchimp** sync from SUBSCRIBERS KV for real newsletter sends
-3. **Human publish pipeline**: desk draft → PR markdown into `src/content/guides`
-4. **Workers AI rewrite** step on news drafts (summarize + evidence checklist)
-5. **Author bios / medical reviewer** page for stronger YMYL E-E-A-T
-6. **Compound cluster pages** (`/compounds/bpc-157`) linking guides + tools
-7. **Backlink ops tracker** (CRM of outreach pitches)
-8. **Replace placeholder KV IDs** with real `wrangler kv namespace create` outputs before production cron works
-9. Soft **sourcing literacy** article (phase 2 Peperchini contextual mention)
-10. **Turnstile** on newsletter form to cut bot signups
+## Shipped
+- [x] Compound hubs, snapshots, sourcing literacy + soft Peperchini example
+- [x] Editorial / Authors / FAQ / Contact
+- [x] Newsletter: Turnstile-ready, Resend sync, broadcast, **KV→Resend backfill**
+- [x] Stripe Checkout + shop success/cancel banners
+- [x] Desk pipeline: AI rewrite, checklist, **GitHub PR body export**, health check
+- [x] Guides search + evidence filters
+- [x] noindex desk/outreach; sitemap excludes both
+- [x] Ops runbook: `docs/OPS-CLOUDFLARE.md`
+
+## Still to do (ops — Cloudflare dashboard)
+1. Bind KV: `SUBSCRIBERS`, `NEWS_DRAFTS`
+2. Secrets: `NEWS_TRIGGER_SECRET`; optional Turnstile, Stripe, Resend
+3. Attach custom domain `aminobrief.com`
+4. Seat clinical reviewer when ready (`/authors`)

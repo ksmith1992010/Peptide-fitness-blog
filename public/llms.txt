@@ -5,8 +5,13 @@ Amino Brief explains research peptides with sources, gym-floor clarity, and hard
 
 ## Pillars
 - [Learn](https://aminobrief.com/learn): starter path
+- [Compounds](https://aminobrief.com/compounds): research-framed compound hubs
 - [Guides](https://aminobrief.com/guides): evidence-tagged articles
 - [Evidence grades](https://aminobrief.com/evidence): how claims are labeled
+- [Editorial standards](https://aminobrief.com/editorial): E-E-A-T / corrections
+- [Authors](https://aminobrief.com/authors): publisher identity + review disclosure
+- [FAQ](https://aminobrief.com/faq): common boundaries
+- [Contact](https://aminobrief.com/contact): editorial / orders mail
 - [Tools](https://aminobrief.com/tools): reconstitution / syringe / vial math
 - [Shop](https://aminobrief.com/shop): bac water, syringes, cases, reseller MOQs
 - [Glossary](https://aminobrief.com/glossary)

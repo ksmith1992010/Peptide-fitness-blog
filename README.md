@@ -43,7 +43,11 @@ Optional:
 
 ```bash
 npx wrangler secret put NEWS_TRIGGER_SECRET
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put RESEND_AUDIENCE_ID
 ```
+
+Full checklist: [`docs/OPS-CLOUDFLARE.md`](docs/OPS-CLOUDFLARE.md).
 
 Dashboard Git settings:
 
@@ -57,10 +61,10 @@ Dashboard Git settings:
 ## Systems
 
 - **Tools** — peptide dropdown, duration context, not-medical-advice warnings
-- **Newsletter** — `POST /api/newsletter` → KV
-- **News loop** — cron → RSS → KV drafts → `/desk` (no auto-publish)
-- **Shop** — MOQ / reseller / wholesale tiers; sourced accessories only
-- **SEO** — `/growth` playbook page
+- **Newsletter** — `POST /api/newsletter` → KV (+ optional Resend audience sync)
+- **News loop** — cron → RSS → KV drafts → `/desk` (no auto-publish; optional AI rewrite)
+- **Shop** — MOQ / reseller / wholesale tiers; Stripe stub when secrets set
+- **SEO** — `/growth`, `/faq`, `llms.txt`, sitemap, RSS
 
 ## Notes
 

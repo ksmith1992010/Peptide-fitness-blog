@@ -15,25 +15,30 @@ const paths = [
     href: '/evidence',
   },
   {
-    title: '3. Quality literacy',
-    body: 'COAs, HPLC, RUO labels — how not to get played by a PDF.',
-    href: '/guides/how-to-read-a-coa',
+    title: '3. Quality & sourcing literacy',
+    body: 'COAs, HPLC, RUO labels, storage, and how to evaluate a source without the affiliate carnival.',
+    href: '/guides/how-to-evaluate-a-peptide-source',
   },
   {
-    title: '4. Reconstitution math',
+    title: '4. Compound hubs',
+    body: 'Name-by-name research literacy — evidence notes, duration context, tools.',
+    href: '/compounds',
+  },
+  {
+    title: '5. Reconstitution math',
     body: 'mg, mL, units. Run the numbers yourself.',
     href: '/tools/reconstitution',
   },
 ];
 ---
 
-<BaseLayout title="Learn" description="Learning paths for peptide awareness — basics, evidence, quality, and math tools.">
+<BaseLayout title="Learn" description="Learning paths for peptide awareness — basics, evidence, quality, compounds, and math tools.">
   <Header slot="header" />
   <section class="section">
     <div class="container">
       <p class="eyebrow">Learning paths</p>
       <h1>Start here. Skip the guru fluff.</h1>
-      <p class="lede">Four stops. No stack porn. Just the foundation so the rest of the internet makes more sense.</p>
+      <p class="lede">Five stops. No stack porn. Just the foundation so the rest of the internet makes more sense.</p>
       <ul class="link-list" style="margin-top: 2.5rem;">
         {
           paths.map((p) => (

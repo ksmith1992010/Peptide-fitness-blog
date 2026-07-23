@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { products, getProduct } from '../../data/products';
+import { products, getProduct, stripeCheckoutSlugs } from '../../data/products';
 
 export function getStaticPaths() {
   return products.map((p) => ({ params: { slug: p.slug } }));
@@ -66,6 +66,27 @@ const productSchema = {
       <p style="font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
         <strong>Sourcing:</strong> {product.supplierNote}
       </p>
+
+      {
+        stripeCheckoutSlugs.includes(product.slug as (typeof stripeCheckoutSlugs)[number]) && (
+          <div class="tool-panel" style="margin-top: 2rem;" data-stripe-panel data-checkout-sku={product.slug}>
+            <h2 style="font-size: 1.4rem;">Card checkout</h2>
+            <p style="color: var(--mute);">
+              Retail Stripe Checkout when configured. Reseller / wholesale MOQs still use the email request below.
+            </p>
+            <div class="tool-grid" style="margin-top: 1rem;">
+              <div class="field">
+                <label for="stripe-qty">Quantity</label>
+                <input id="stripe-qty" name="stripe-qty" type="number" min="1" max="100" value="1" />
+              </div>
+            </div>
+            <button class="btn btn-primary" type="button" data-stripe-checkout style="margin-top: 1rem;">
+              Pay with card
+            </button>
+            <p data-stripe-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
+          </div>
+        )
+      }
 
       <div class="tool-panel" style="margin-top: 2rem;">
         <h2 style="font-size: 1.4rem;">MOQ order request</h2>
@@ -158,5 +179,39 @@ const productSchema = {
       ].join('\n'),
     );
     window.location.href = `mailto:orders@aminobrief.com?subject=${subject}&body=${body}`;
+  });
+
+  const stripePanel = document.querySelector('[data-stripe-panel]');
+  const stripeBtn = document.querySelector('[data-stripe-checkout]');
+  const stripeStatus = document.querySelector('[data-stripe-status]');
+  const params = new URLSearchParams(window.location.search);
+  if (stripeStatus && params.get('checkout') === 'success') {
+    stripeStatus.textContent = 'Payment started successfully — check your email from Stripe for the receipt.';
+  }
+  if (stripeStatus && params.get('checkout') === 'cancel') {
+    stripeStatus.textContent = 'Checkout canceled. Email order request still works below.';
+  }
+  stripeBtn?.addEventListener('click', async () => {
+    if (!stripePanel || !stripeStatus) return;
+    const sku = stripePanel.getAttribute('data-checkout-sku');
+    const qtyInput = document.getElementById('stripe-qty');
+    const quantity = Number(qtyInput?.value || 1);
+    stripeStatus.textContent = 'Starting Stripe Checkout…';
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sku, quantity }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Checkout unavailable');
+      if (!json.url) throw new Error('No checkout URL returned');
+      window.location.href = json.url;
+    } catch (err) {
+      stripeStatus.textContent =
+        err instanceof Error
+          ? err.message
+          : 'Checkout unavailable. Use the email order request below.';
+    }
   });
 </script>

@@ -4,7 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 ---
 
-<BaseLayout title="Page not found" description="That page does not exist on Amino Brief.">
+<BaseLayout title="Page not found" description="That page does not exist on Amino Brief." noindex={true}>
   <Header slot="header" />
   <section class="section">
     <div class="container">
@@ -12,7 +12,10 @@ import Footer from '../components/Footer.astro';
       <p class="lede">That URL isn’t in the archive.</p>
       <div class="btn-row">
         <a class="btn btn-primary" href="/">Home</a>
+        <a class="btn btn-secondary" href="/learn">Learn</a>
         <a class="btn btn-secondary" href="/guides">Guides</a>
+        <a class="btn btn-secondary" href="/compounds">Compounds</a>
+        <a class="btn btn-secondary" href="/tools">Tools</a>
       </div>
     </div>
   </section>
