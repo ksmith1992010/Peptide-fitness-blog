@@ -1,0 +1,19 @@
+---
+interface Props {
+  level: string;
+}
+
+const labels: Record<string, string> = {
+  'fda-approved': 'FDA-approved context',
+  human: 'Human evidence',
+  mixed: 'Mixed evidence',
+  animal: 'Animal / preclinical',
+  anecdotal: 'Anecdotal',
+  literacy: 'Literacy / how-to',
+};
+
+const { level } = Astro.props;
+const warn = level === 'animal' || level === 'anecdotal';
+---
+
+<span class:list={['badge', warn && 'badge-warn']}>{labels[level] ?? level}</span>

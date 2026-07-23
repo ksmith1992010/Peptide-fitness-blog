@@ -1,0 +1,107 @@
+---
+const path = Astro.url.pathname;
+
+const links = [
+  { href: '/learn', label: 'Learn' },
+  { href: '/guides', label: 'Guides' },
+  { href: '/tools', label: 'Tools' },
+  { href: '/shop', label: 'Shop' },
+  { href: '/glossary', label: 'Glossary' },
+  { href: '/about', label: 'About' },
+];
+
+function isCurrent(href: string) {
+  if (href === '/') return path === '/';
+  return path === href || path.startsWith(`${href}/`);
+}
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="/" aria-label="Amino Brief home">
+      <img src="/logo-mark.svg" alt="" width="36" height="42" />
+      <span>Amino Brief</span>
+    </a>
+    <nav aria-label="Primary">
+      {
+        links.map((link) => (
+          <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+    background: rgba(243, 245, 242, 0.86);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.25rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .brand img {
+    width: 36px;
+    height: auto;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem 0.9rem;
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
+  }
+
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--teal-deep);
+    border-bottom-color: var(--teal);
+  }
+
+  @media (max-width: 720px) {
+    .bar {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-block: 0.85rem;
+    }
+
+    nav {
+      justify-content: flex-start;
+    }
+  }
+</style>

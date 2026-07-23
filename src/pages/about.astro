@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="About" description="What Amino Brief is — and what it is not.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">About</p>
+      <h1>Gym-floor clarity. PubMed receipts.</h1>
+      <p>
+        Amino Brief is an independent peptide <strong>awareness</strong> site. We explain what compounds are,
+        what kind of evidence exists, how to read quality docs, and how reconstitution math works.
+      </p>
+      <h2>What we are</h2>
+      <ul>
+        <li>Educational briefs with evidence grades</li>
+        <li>Open math tools for concentration and syringe units</li>
+        <li>A small accessories shop (bac water, syringes, cases)</li>
+      </ul>
+      <h2>What we are not</h2>
+      <ul>
+        <li>Not a medical practice</li>
+        <li>Not a peptide pharmacy</li>
+        <li>Not your coach’s secret protocol dump</li>
+        <li>Not affiliated with any research-chemical brand on the homepage</li>
+      </ul>
+      <h2>Disclaimer</h2>
+      <p class="disclaimer">
+        Nothing on this site is medical advice, a diagnosis, or a treatment plan. Many research peptides are not
+        FDA-approved for the uses people discuss online. Decisions about your health belong with a qualified clinician.
+        Calculators are unit-conversion helpers only.
+      </p>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

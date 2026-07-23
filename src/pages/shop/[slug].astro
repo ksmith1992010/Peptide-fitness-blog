@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { products, getProduct } from '../../data/products';
+
+export function getStaticPaths() {
+  return products.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const product = getProduct(slug!);
+if (!product) {
+  throw new Error(`Unknown product: ${slug}`);
+}
+---
+
+<BaseLayout title={product.name} description={product.blurb}>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container" style="max-width: 720px;">
+      <p class="eyebrow">Shop · {product.sku}</p>
+      <h1 style="max-width: 12ch;">{product.name}</h1>
+      <p class="price" style="font-family: var(--font-display); font-size: 2.4rem; margin: 0.5rem 0 1rem;">
+        ${product.price}
+      </p>
+      <p class="lede" style="max-width: 40ch;">{product.blurb}</p>
+      <ul>
+        {product.details.map((d) => <li>{d}</li>)}
+      </ul>
+
+      <div class="tool-panel" style="margin-top: 2rem;">
+        <h2 style="font-size: 1.4rem;">Request an order</h2>
+        <p style="color: var(--mute);">
+          Checkout wiring (Stripe) comes next. For now, send a request — we’ll confirm stock and payment.
+        </p>
+        <form name="shop-order" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="shop-order" />
+          <input type="hidden" name="product" value={product.slug} />
+          <p style="display: none;">
+            <label>Don’t fill this out: <input name="bot-field" /></label>
+          </p>
+          <div class="tool-grid" style="margin-top: 1rem;">
+            <div class="field">
+              <label for="name">Name</label>
+              <input id="name" name="name" required />
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" required />
+            </div>
+            <div class="field">
+              <label for="qty">Quantity</label>
+              <input id="qty" name="qty" type="number" min="1" value="1" required />
+            </div>
+            <div class="field">
+              <label for="notes">Notes</label>
+              <input id="notes" name="notes" placeholder="Shipping preference, questions…" />
+            </div>
+          </div>
+          <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Send order request</button>
+        </form>
+      </div>
+
+      <p class="disclaimer" style="margin-top: 1.5rem;">
+        Accessories for research / educational workflows. Amino Brief does not sell peptides and does not provide
+        medical or injection advice.
+      </p>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

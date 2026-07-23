@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2A6B6B" stop-opacity="0.35"/>
+      <stop offset="55%" stop-color="#1A1A1A" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0F1413" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <!-- stylized peptide ribbon -->
+  <g stroke="#D7E6E4" stroke-width="3" opacity="0.35" fill="none">
+    <path d="M120 560 C260 420, 380 700, 520 480 S780 220, 980 360"/>
+    <circle cx="220" cy="500" r="10" fill="#D7E6E4" stroke="none"/>
+    <circle cx="420" cy="560" r="10" fill="#D7E6E4" stroke="none"/>
+    <circle cx="620" cy="400" r="10" fill="#D7E6E4" stroke="none"/>
+    <circle cx="820" cy="300" r="10" fill="#D7E6E4" stroke="none"/>
+  </g>
+  <g stroke="#2A6B6B" stroke-width="8" stroke-linejoin="round" opacity="0.55">
+    <path d="M760 140h120l60 60v220H760V140z"/>
+    <path d="M880 140v60h60"/>
+    <path d="M760 200l-36 22v44l36 22 36-22v-44l-36-22z"/>
+    <path d="M760 288l-36 22v44l36 22 36-22v-44l-36-22z"/>
+    <path d="M760 376l-36 22v44l36 22 36-22v-44l-36-22z"/>
+  </g>
+</svg>

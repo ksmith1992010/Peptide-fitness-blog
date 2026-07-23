@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="Evidence grades" description="How Amino Brief grades claims — from FDA-approved context to anecdotal gym lore.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">Evidence</p>
+      <h1>How we grade claims</h1>
+      <p class="lede" style="max-width: 42ch;">
+        If a post doesn’t tell you what kind of evidence it’s standing on, treat it like a hype reel.
+      </p>
+      <h2>FDA-approved context</h2>
+      <p>The compound (or a closely related approved medicine) has a regulated clinical indication. Still read the label.</p>
+      <h2>Human evidence</h2>
+      <p>Peer-reviewed human trials or strong clinical literature for the specific claim being discussed.</p>
+      <h2>Mixed evidence</h2>
+      <p>Some human data exists, but it’s small, conflicting, off-label, or not matched to the internet claim.</p>
+      <h2>Animal / preclinical</h2>
+      <p>Rodent, cell, or mechanistic work. Interesting — not a green light for bro science cosplay.</p>
+      <h2>Anecdotal</h2>
+      <p>Forums, coaches, n=1 logs. Useful for questions to ask. Useless as proof.</p>
+      <h2>Literacy / how-to</h2>
+      <p>Process explainers: reading a COA, reconstitution arithmetic, glossary terms. Not efficacy claims.</p>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

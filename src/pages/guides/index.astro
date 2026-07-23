@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import EvidenceBadge from '../../components/EvidenceBadge.astro';
+import { getCollection } from 'astro:content';
+
+const guides = (await getCollection('guides')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const filters = [
+  { id: 'all', label: 'All' },
+  { id: 'safety', label: 'Safety' },
+  { id: 'comparison', label: 'Comparison' },
+  { id: 'protocol', label: 'Protocol' },
+  { id: 'planner', label: 'Planner' },
+  { id: 'basics', label: 'Basics' },
+  { id: 'quality', label: 'Quality' },
+];
+---
+
+<BaseLayout title="Guides" description="Evidence-tagged peptide awareness guides — safety, quality, comparisons, and basics.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Guides</p>
+      <h1>Research notes with receipts</h1>
+      <p class="lede">Filter by topic. Every piece carries an evidence badge so you know what kind of claim you’re looking at.</p>
+
+      <div class="pill-filters" role="toolbar" aria-label="Guide filters" data-guide-filters>
+        {
+          filters.map((f) => (
+            <button type="button" data-filter={f.id} aria-pressed={f.id === 'all' ? 'true' : 'false'}>
+              {f.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <ul class="link-list" data-guide-list>
+        {
+          guides.map((guide) => (
+            <li data-category={guide.data.category}>
+              <a href={`/guides/${guide.id}`}>
+                <div class="meta">
+                  <EvidenceBadge level={guide.data.evidence} />
+                  <span style="margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;">
+                    {guide.data.category}
+                  </span>
+                  <span style="margin-left: 0.5rem;">
+                    {guide.data.pubDate.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </div>
+                <h3>{guide.data.title}</h3>
+                <p style="margin: 0.35rem 0 0; color: var(--mute);">{guide.data.description}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>
+
+<script>
+  const toolbar = document.querySelector('[data-guide-filters]');
+  const list = document.querySelector('[data-guide-list]');
+  if (toolbar && list) {
+    toolbar.addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-filter]');
+      if (!btn) return;
+      const filter = btn.dataset.filter;
+      toolbar.querySelectorAll('button').forEach((b) => {
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
+      list.querySelectorAll('li[data-category]').forEach((item) => {
+        const show = filter === 'all' || item.dataset.category === filter;
+        item.hidden = !show;
+      });
+    });
+  }
+</script>

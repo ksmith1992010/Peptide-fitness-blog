@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Vial planner"
+  description="Estimate how many theoretical draws are in a peptide vial at a given amount."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container" style="max-width: 760px;">
+      <p class="eyebrow">Tools</p>
+      <h1>Vial planner</h1>
+      <p class="lede">How many draws are theoretically in the vial? Water volume does not change this number.</p>
+
+      <div class="tool-panel" data-vial-calc style="margin-top: 2rem;">
+        <div class="tool-grid">
+          <div class="field">
+            <label for="vial">Vial strength (mg)</label>
+            <input id="vial" name="vial" type="number" min="0.1" step="0.1" value="10" />
+          </div>
+          <div class="field">
+            <label for="amt">Amount per draw (mcg)</label>
+            <input id="amt" name="amt" type="number" min="1" step="1" value="500" />
+          </div>
+        </div>
+        <div class="result-box" aria-live="polite">
+          <dl>
+            <dt>Theoretical draws</dt>
+            <dd data-out="draws">—</dd>
+            <dt>Amount per draw</dt>
+            <dd data-out="dose">—</dd>
+          </dl>
+        </div>
+        <p class="disclaimer" style="margin-top: 1rem; margin-bottom: 0;">
+          Adding more bac water only changes concentration and draw volume — not how much peptide is in the vial.
+        </p>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>
+
+<script>
+  function run(root) {
+    const vial = Number(root.querySelector('[name="vial"]').value);
+    const mcg = Number(root.querySelector('[name="amt"]').value);
+    const drawsEl = root.querySelector('[data-out="draws"]');
+    const doseEl = root.querySelector('[data-out="dose"]');
+    if (!(vial > 0) || !(mcg > 0)) {
+      drawsEl.textContent = '—';
+      doseEl.textContent = '—';
+      return;
+    }
+    const doseMg = mcg / 1000;
+    drawsEl.textContent = `${Number((vial / doseMg).toFixed(1))}`;
+    doseEl.textContent = `${mcg} mcg (${Number(doseMg.toFixed(3))} mg)`;
+  }
+
+  document.querySelectorAll('[data-vial-calc]').forEach((root) => {
+    root.querySelectorAll('input').forEach((el) => el.addEventListener('input', () => run(root)));
+    run(root);
+  });
+</script>

@@ -1,0 +1,94 @@
+---
+---
+
+<div class="tool-panel" data-recon-calc>
+  <div class="tool-grid">
+    <div class="field">
+      <label for="vial-mg">Peptide in vial (mg)</label>
+      <input id="vial-mg" name="vialMg" type="number" min="0.1" step="0.1" value="5" />
+    </div>
+    <div class="field">
+      <label for="bac-ml">Bac water added (mL)</label>
+      <input id="bac-ml" name="bacMl" type="number" min="0.1" step="0.1" value="2" />
+    </div>
+    <div class="field">
+      <label for="dose-mcg">Target amount (mcg)</label>
+      <input id="dose-mcg" name="doseMcg" type="number" min="1" step="1" value="250" />
+    </div>
+    <div class="field">
+      <label for="syringe">Syringe type</label>
+      <select id="syringe" name="syringe">
+        <option value="U100" selected>U-100 (100 units = 1 mL)</option>
+        <option value="U40">U-40 (40 units = 1 mL)</option>
+        <option value="1mL">1 mL tuberculin (volume only)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="result-box" aria-live="polite">
+    <dl>
+      <dt>Concentration</dt>
+      <dd data-out="concentration">—</dd>
+      <dt>Draw volume</dt>
+      <dd data-out="volume">—</dd>
+      <dt>Syringe mark</dt>
+      <dd data-out="units">—</dd>
+      <dt>Amounts per vial</dt>
+      <dd data-out="doses">—</dd>
+    </dl>
+  </div>
+
+  <p class="disclaimer" style="margin-top: 1rem; margin-bottom: 0;">
+    Math toy only. Converts vial strength + diluent into concentration and theoretical syringe units.
+    Not a dosing recommendation, not medical advice, not for human use instruction.
+  </p>
+</div>
+
+<script>
+  function format(n, digits = 3) {
+    if (!Number.isFinite(n)) return '—';
+    return `${Number(n.toFixed(digits))}`;
+  }
+
+  function calc(root) {
+    const vialMg = Number(root.querySelector('[name="vialMg"]').value);
+    const bacMl = Number(root.querySelector('[name="bacMl"]').value);
+    const doseMcg = Number(root.querySelector('[name="doseMcg"]').value);
+    const syringe = root.querySelector('[name="syringe"]').value;
+
+    const out = {
+      concentration: root.querySelector('[data-out="concentration"]'),
+      volume: root.querySelector('[data-out="volume"]'),
+      units: root.querySelector('[data-out="units"]'),
+      doses: root.querySelector('[data-out="doses"]'),
+    };
+
+    if (!(vialMg > 0) || !(bacMl > 0) || !(doseMcg > 0)) {
+      out.concentration.textContent = '—';
+      out.volume.textContent = '—';
+      out.units.textContent = '—';
+      out.doses.textContent = '—';
+      return;
+    }
+
+    const doseMg = doseMcg / 1000;
+    const concentration = vialMg / bacMl;
+    const volume = doseMg / concentration;
+    const unitsPerMl = syringe === 'U100' ? 100 : syringe === 'U40' ? 40 : null;
+    const units = unitsPerMl == null ? null : volume * unitsPerMl;
+    const doses = vialMg / doseMg;
+
+    out.concentration.textContent = `${format(concentration, 3)} mg/mL`;
+    out.volume.textContent = `${format(volume, 4)} mL`;
+    out.units.textContent = units == null ? `${format(volume, 4)} mL` : `${format(units, 1)} units`;
+    out.doses.textContent = format(doses, 1);
+  }
+
+  document.querySelectorAll('[data-recon-calc]').forEach((root) => {
+    root.querySelectorAll('input, select').forEach((el) => {
+      el.addEventListener('input', () => calc(root));
+      el.addEventListener('change', () => calc(root));
+    });
+    calc(root);
+  });
+</script>
