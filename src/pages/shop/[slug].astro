@@ -13,28 +13,74 @@ const product = getProduct(slug!);
 if (!product) {
   throw new Error(`Unknown product: ${slug}`);
 }
+
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.blurb,
+  sku: product.sku,
+  brand: { '@type': 'Brand', name: 'Amino Brief' },
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'USD',
+    price: product.price,
+    availability: 'https://schema.org/PreOrder',
+    url: new URL(`/shop/${product.slug}`, Astro.site).toString(),
+  },
+};
 ---
 
-<BaseLayout title={product.name} description={product.blurb}>
+<BaseLayout title={product.name} description={product.blurb} jsonLd={productSchema}>
   <Header slot="header" />
   <section class="section">
     <div class="container" style="max-width: 720px;">
-      <p class="eyebrow">Shop · {product.sku}</p>
-      <h1 style="max-width: 12ch;">{product.name}</h1>
-      <p class="price" style="font-family: var(--font-display); font-size: 2.4rem; margin: 0.5rem 0 1rem;">
+      <p class="eyebrow">Shop · {product.sku} · {product.category}</p>
+      <h1 style="max-width: 14ch;">{product.name}</h1>
+      <p class="price" style="font-family: var(--font-display); font-size: 2.4rem; margin: 0.5rem 0 0.35rem;">
         ${product.price}
+      </p>
+      <p style="font-family: var(--font-ui); color: var(--mute); margin: 0 0 1rem;">
+        Retail MOQ: <strong>{product.moq}</strong>
+        {
+          product.resellerPrice && (
+            <>
+              {' '}
+              · Reseller from <strong>${product.resellerPrice}</strong> (qty 6+)
+            </>
+          )
+        }
+        {
+          product.wholesalePrice && product.wholesaleMoq && (
+            <>
+              {' '}
+              · Wholesale from <strong>${product.wholesalePrice}</strong> (qty {product.wholesaleMoq}+)
+            </>
+          )
+        }
       </p>
       <p class="lede" style="max-width: 40ch;">{product.blurb}</p>
       <ul>
         {product.details.map((d) => <li>{d}</li>)}
       </ul>
+      <p style="font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
+        <strong>Sourcing:</strong> {product.supplierNote}
+      </p>
 
       <div class="tool-panel" style="margin-top: 2rem;">
-        <h2 style="font-size: 1.4rem;">Request an order</h2>
+        <h2 style="font-size: 1.4rem;">MOQ order request</h2>
         <p style="color: var(--mute);">
-          Stripe checkout comes next. For now this opens an email draft with your order details.
+          Select quantity to see tier. Opens an email draft with MOQ / reseller details.
         </p>
-        <form id="shop-order" data-product={product.name} data-sku={product.sku} data-price={product.price}>
+        <form
+          id="shop-order"
+          data-product={product.name}
+          data-sku={product.sku}
+          data-price={product.price}
+          data-reseller={product.resellerPrice ?? ''}
+          data-wholesale={product.wholesalePrice ?? ''}
+          data-wholesale-moq={product.wholesaleMoq ?? ''}
+        >
           <div class="tool-grid" style="margin-top: 1rem;">
             <div class="field">
               <label for="name">Name</label>
@@ -45,21 +91,29 @@ if (!product) {
               <input id="email" name="email" type="email" required />
             </div>
             <div class="field">
-              <label for="qty">Quantity</label>
-              <input id="qty" name="qty" type="number" min="1" value="1" required />
+              <label for="qty">Quantity (MOQ {product.moq})</label>
+              <input id="qty" name="qty" type="number" min={product.moq} value={product.moq} required />
             </div>
             <div class="field">
+              <label for="tier">Intent</label>
+              <select id="tier" name="tier">
+                <option value="retail">Retail</option>
+                <option value="reseller">Reseller</option>
+                <option value="wholesale">Wholesale</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
               <label for="notes">Notes</label>
-              <input id="notes" name="notes" placeholder="Shipping preference, questions…" />
+              <input id="notes" name="notes" placeholder="Shipping, storefront URL, tax ID…" />
             </div>
           </div>
+          <p data-tier-preview style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
           <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Email order request</button>
         </form>
       </div>
 
       <p class="disclaimer" style="margin-top: 1.5rem;">
-        Accessories for research / educational workflows. Amino Brief does not sell peptides and does not provide
-        medical or injection advice.
+        Accessories only. Amino Brief does not sell peptides and does not provide medical or injection advice.
       </p>
     </div>
   </section>
@@ -68,25 +122,39 @@ if (!product) {
 
 <script>
   const form = document.getElementById('shop-order');
+  const preview = document.querySelector('[data-tier-preview]');
+  function tierPrice(qty) {
+    const retail = Number(form.dataset.price);
+    const reseller = Number(form.dataset.reseller || 0);
+    const wholesale = Number(form.dataset.wholesale || 0);
+    const wMoq = Number(form.dataset.wholesaleMoq || 0);
+    if (wholesale && wMoq && qty >= wMoq) return { unit: wholesale, tier: 'wholesale' };
+    if (reseller && qty >= 6) return { unit: reseller, tier: 'reseller' };
+    return { unit: retail, tier: 'retail' };
+  }
+  function updatePreview() {
+    if (!form || !preview) return;
+    const qty = Number(form.qty.value || 1);
+    const { unit, tier } = tierPrice(qty);
+    preview.textContent = `Est. ${tier} unit ~$${unit} · line ~$${(unit * qty).toFixed(2)} (confirm on reply)`;
+  }
+  form?.qty.addEventListener('input', updatePreview);
+  updatePreview();
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(form);
-    const product = form.dataset.product;
-    const sku = form.dataset.sku;
-    const price = form.dataset.price;
-    const name = String(data.get('name') || '');
-    const email = String(data.get('email') || '');
-    const qty = String(data.get('qty') || '1');
-    const notes = String(data.get('notes') || '');
-    const subject = encodeURIComponent(`Amino Brief order: ${product} × ${qty}`);
+    const qty = Number(data.get('qty') || 1);
+    const { unit, tier } = tierPrice(qty);
+    const subject = encodeURIComponent(`Amino Brief order: ${form.dataset.product} × ${qty} (${tier})`);
     const body = encodeURIComponent(
       [
-        `Product: ${product} (${sku})`,
-        `Price: $${price}`,
+        `Product: ${form.dataset.product} (${form.dataset.sku})`,
         `Qty: ${qty}`,
-        `Name: ${name}`,
-        `Email: ${email}`,
-        `Notes: ${notes}`,
+        `Intent: ${data.get('tier')}`,
+        `Estimated tier: ${tier} @ $${unit}`,
+        `Name: ${data.get('name')}`,
+        `Email: ${data.get('email')}`,
+        `Notes: ${data.get('notes') || ''}`,
       ].join('\n'),
     );
     window.location.href = `mailto:orders@aminobrief.com?subject=${subject}&body=${body}`;

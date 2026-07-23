@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Newsroom desk"
+  description="Auto-pulled peptide-space drafts awaiting editorial review."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Newsroom</p>
+      <h1>Desk drafts</h1>
+      <p class="lede" style="max-width: 42ch;">
+        Cron pulls trending / breaking feeds every 6 hours and stages drafts here. Nothing auto-publishes to Guides.
+      </p>
+      <p class="disclaimer">Drafts are starting points — fact-check before anything hits the public guide library.</p>
+
+      <div id="desk" style="margin-top: 2rem;">
+        <p data-desk-status>Loading drafts…</p>
+        <ul class="link-list" data-desk-list></ul>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>
+
+<script>
+  const status = document.querySelector('[data-desk-status]');
+  const list = document.querySelector('[data-desk-list]');
+
+  function safeHttpUrl(value) {
+    try {
+      const u = new URL(value);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      return u.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  async function load() {
+    try {
+      const res = await fetch('/api/news/drafts');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+      const drafts = data.drafts || [];
+      if (!drafts.length) {
+        status.textContent = 'No drafts yet. Cron runs every 6 hours after KV namespaces are live.';
+        return;
+      }
+      status.textContent = `${drafts.length} draft(s). Last run meta: ${data.lastRun || 'n/a'}`;
+      list.innerHTML = '';
+      for (const d of drafts) {
+        const href = safeHttpUrl(d.url);
+        if (!href) continue;
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = href;
+        a.rel = 'noopener noreferrer';
+        a.target = '_blank';
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = `${d.source || 'feed'} · ${new Date(d.createdAt).toLocaleString()} · ${d.status || 'draft'}`;
+
+        const h3 = document.createElement('h3');
+        h3.textContent = d.title || 'Untitled draft';
+
+        const p = document.createElement('p');
+        p.style.margin = '0.35rem 0 0';
+        p.style.color = 'var(--mute)';
+        p.textContent = d.summary || '';
+
+        a.append(meta, h3, p);
+        li.appendChild(a);
+        list.appendChild(li);
+      }
+    } catch (err) {
+      status.textContent =
+        err instanceof Error
+          ? `${err.message} — API needs Cloudflare KV bindings after deploy.`
+          : 'Could not load drafts.';
+    }
+  }
+  load();
+</script>

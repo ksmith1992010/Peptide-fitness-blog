@@ -1,0 +1,79 @@
+---
+import { peptides, durationOptions } from '../../data/peptides';
+---
+
+<div class="peptide-controls tool-panel" data-peptide-controls>
+  <div class="tool-grid">
+    <div class="field">
+      <label for="peptide-select">Peptide</label>
+      <select id="peptide-select" name="peptide" data-peptide-select>
+        {peptides.map((p) => <option value={p.id}>{p.name}</option>)}
+      </select>
+    </div>
+    <div class="field">
+      <label for="duration-select">Length of use context</label>
+      <select id="duration-select" name="duration" data-duration-select>
+        {durationOptions.map((d) => <option value={d.id}>{d.label}</option>)}
+      </select>
+    </div>
+  </div>
+
+  <div class="reco" data-reco-panel>
+    <p class="eyebrow" style="margin-bottom: 0.35rem;">Research-context notes</p>
+    <h3 data-reco-name style="margin: 0 0 0.35rem; font-size: 1.25rem;"></h3>
+    <p data-reco-summary style="color: var(--mute); margin: 0 0 0.75rem;"></p>
+    <p data-reco-duration style="margin: 0 0 0.75rem;"></p>
+    <ul data-reco-cautions style="margin: 0; padding-left: 1.1rem;"></ul>
+    <p class="meta" data-reco-evidence style="margin-top: 0.75rem; font-family: var(--font-ui); font-size: 0.8rem; color: var(--mute);"></p>
+  </div>
+</div>
+
+<script define:vars={{ peptides, durationOptions }}>
+  const root = document.querySelector('[data-peptide-controls]');
+  if (root) {
+    const peptideSelect = root.querySelector('[data-peptide-select]');
+    const durationSelect = root.querySelector('[data-duration-select]');
+    const nameEl = root.querySelector('[data-reco-name]');
+    const summaryEl = root.querySelector('[data-reco-summary]');
+    const durationEl = root.querySelector('[data-reco-duration]');
+    const cautionsEl = root.querySelector('[data-reco-cautions]');
+    const evidenceEl = root.querySelector('[data-reco-evidence]');
+
+    function currentPeptide() {
+      return peptides.find((p) => p.id === peptideSelect.value) || peptides[0];
+    }
+
+    function render() {
+      const p = currentPeptide();
+      const d = durationSelect.value;
+      nameEl.textContent = p.name;
+      summaryEl.textContent = p.summary;
+      durationEl.textContent = p.durationNotes[d] || '';
+      cautionsEl.innerHTML = '';
+      p.cautions.forEach((c) => {
+        const li = document.createElement('li');
+        li.textContent = c;
+        cautionsEl.appendChild(li);
+      });
+      evidenceEl.textContent = `Evidence badge: ${p.evidence} · Sources: ${p.sourcesHint}`;
+      root.dispatchEvent(
+        new CustomEvent('peptide-change', {
+          bubbles: true,
+          detail: { peptide: p, duration: d },
+        }),
+      );
+    }
+
+    peptideSelect.addEventListener('change', render);
+    durationSelect.addEventListener('change', render);
+    render();
+  }
+</script>
+
+<style>
+  .reco {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+</style>

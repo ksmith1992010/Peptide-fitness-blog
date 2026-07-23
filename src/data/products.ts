@@ -1,10 +1,22 @@
+export type BuyerTier = 'retail' | 'reseller' | 'wholesale';
+
 export interface Product {
   slug: string;
   name: string;
   price: number;
+  /** Minimum order quantity units */
+  moq: number;
+  /** Optional reseller unit price when MOQ met */
+  resellerPrice?: number;
+  /** Wholesale carton price (per unit equivalent display) */
+  wholesalePrice?: number;
+  wholesaleMoq?: number;
   blurb: string;
   details: string[];
   sku: string;
+  category: 'consumables' | 'devices' | 'storage' | 'bundles' | 'reseller';
+  forResellers?: boolean;
+  supplierNote: string;
 }
 
 export const products: Product[] = [
@@ -12,43 +24,189 @@ export const products: Product[] = [
     slug: 'bac-water',
     name: 'Bacteriostatic Water',
     price: 18,
+    moq: 1,
+    resellerPrice: 14,
+    wholesalePrice: 11,
+    wholesaleMoq: 24,
     sku: 'AB-BAC-30',
-    blurb: '30 mL bacteriostatic water for reconstitution math and lab bench use.',
+    category: 'consumables',
+    forResellers: true,
+    blurb: '30 mL bacteriostatic water for reconstitution workflows.',
     details: [
       '30 mL vial',
       '0.9% benzyl alcohol preservative',
-      'For research / educational reconstitution workflows',
-      'Not a drug product; not for injection guidance',
+      'Retail MOQ: 1 · Reseller break: 6+ · Wholesale carton: 24+',
+      'Source: USP-grade bac water suppliers (lot-tracked)',
     ],
+    supplierNote: 'Primary: Cascade / Hospira-equivalent medical supply distributors. Confirm COA per lot.',
   },
   {
     slug: 'insulin-syringes',
     name: 'U-100 Insulin Syringes',
     price: 22,
+    moq: 1,
+    resellerPrice: 17,
+    wholesalePrice: 13,
+    wholesaleMoq: 10,
     sku: 'AB-SYR-U100',
-    blurb: 'Box of 100 × 1 mL U-100 syringes for precise unit draws in research settings.',
+    category: 'devices',
+    forResellers: true,
+    blurb: 'Box of 100 × 1 mL U-100 syringes for precise unit draws.',
     details: [
-      '100 count',
-      '1 mL / U-100 markings',
-      'Individually wrapped',
-      'Pairs with the Amino Brief syringe-units tool',
+      '100 count / box',
+      '1 mL U-100 markings',
+      'Reseller MOQ: 6 boxes · Wholesale: 10+ boxes',
+      'Pairs with Amino Brief syringe tools',
     ],
+    supplierNote: 'Primary: BD / EasyTouch authorized medical distributors.',
   },
   {
     slug: 'vial-carry-case',
     name: 'Vial Carry Case',
     price: 34,
+    moq: 1,
+    resellerPrice: 26,
+    wholesalePrice: 20,
+    wholesaleMoq: 12,
     sku: 'AB-CASE-V4',
+    category: 'storage',
+    forResellers: true,
     blurb: 'Hard-shell travel case with foam inserts for vials and syringes.',
     details: [
       'Holds up to 4 standard vials',
       'Syringe sleeve + ice-pack slot',
-      'Latch closure, TSA-friendly hard shell',
-      'No peptides included — accessories only',
+      'Reseller break at 4 units',
+      'No peptides included',
     ],
+    supplierNote: 'OEM hard-case partners (Alibaba/US kitting). QC foam fit against 3mL/10mL vials.',
+  },
+  {
+    slug: 'alcohol-prep-pads',
+    name: 'Alcohol Prep Pads',
+    price: 9,
+    moq: 1,
+    resellerPrice: 7,
+    wholesalePrice: 5,
+    wholesaleMoq: 20,
+    sku: 'AB-ALC-100',
+    category: 'consumables',
+    forResellers: true,
+    blurb: '100-count sterile isopropyl prep pads for vial stoppers and bench hygiene.',
+    details: ['70% IPA', 'Individually wrapped', 'Reseller MOQ: 10 packs'],
+    supplierNote: 'Medline / Dynarex class distributors.',
+  },
+  {
+    slug: 'sterile-empty-vials',
+    name: 'Sterile Empty Vials (10 mL)',
+    price: 16,
+    moq: 1,
+    resellerPrice: 12,
+    wholesalePrice: 9,
+    wholesaleMoq: 20,
+    sku: 'AB-VIAL-10',
+    category: 'consumables',
+    forResellers: true,
+    blurb: 'Pack of 10 sterile empty vials for aliquoting / lab organization.',
+    details: ['10 × 10 mL', 'Rubber stopper + flip cap', 'Not for human drug manufacturing claims'],
+    supplierNote: 'Wheaton-style lab vial suppliers; sterility cert required.',
+  },
+  {
+    slug: 'nitrile-gloves',
+    name: 'Nitrile Gloves (Box 100)',
+    price: 14,
+    moq: 1,
+    resellerPrice: 11,
+    wholesalePrice: 8,
+    wholesaleMoq: 20,
+    sku: 'AB-GLV-M',
+    category: 'consumables',
+    forResellers: true,
+    blurb: 'Powder-free nitrile gloves for reconstitution bench work.',
+    details: ['Size M standard (S/L on request)', 'Ambidesterous', 'Reseller case pricing available'],
+    supplierNote: 'Medical glove wholesalers (Halyard / private label).',
+  },
+  {
+    slug: 'vial-labels-kit',
+    name: 'Vial Label + Date Kit',
+    price: 12,
+    moq: 1,
+    resellerPrice: 9,
+    wholesalePrice: 7,
+    wholesaleMoq: 25,
+    sku: 'AB-LBL-KIT',
+    category: 'consumables',
+    forResellers: true,
+    blurb: 'Cryo-capable labels for lot, recon date, and concentration notes.',
+    details: ['50 labels + marker', 'Solvent resistant', 'Designed for tool-output notes'],
+    supplierNote: 'Lab label printers / Brady-compatible blanks.',
+  },
+  {
+    slug: 'recon-starter-kit',
+    name: 'Recon Starter Kit',
+    price: 59,
+    moq: 1,
+    resellerPrice: 48,
+    wholesalePrice: 40,
+    wholesaleMoq: 8,
+    sku: 'AB-KIT-RECON',
+    category: 'bundles',
+    forResellers: true,
+    blurb: 'Bac water + syringes + prep pads + labels — accessories only.',
+    details: [
+      '1× bac water 30 mL',
+      '1× U-100 syringe box',
+      '1× prep pads',
+      '1× label kit',
+      'No peptides included',
+    ],
+    supplierNote: 'Kitted in-house from component SKUs above.',
+  },
+  {
+    slug: 'reseller-sample-pack',
+    name: 'Reseller Sample Pack',
+    price: 89,
+    moq: 1,
+    resellerPrice: 89,
+    sku: 'AB-RES-SAMP',
+    category: 'reseller',
+    forResellers: true,
+    blurb: 'Assortment for gyms/clinics evaluating Amino Brief accessories for resale.',
+    details: [
+      '2× bac water',
+      '2× syringe boxes',
+      '1× carry case',
+      '2× prep pads',
+      'Sell sheet PDF included after order request',
+    ],
+    supplierNote: 'Internal kitting. Requires reseller note on order form.',
+  },
+  {
+    slug: 'wholesale-syringe-case',
+    name: 'Wholesale Syringe Case (10 boxes)',
+    price: 130,
+    moq: 10,
+    resellerPrice: 130,
+    wholesalePrice: 130,
+    wholesaleMoq: 10,
+    sku: 'AB-SYR-CASE10',
+    category: 'reseller',
+    forResellers: true,
+    blurb: 'Carton of 10 U-100 syringe boxes for reseller shelves.',
+    details: ['MOQ 10 boxes', 'Flat reseller carton rate', 'Ship freight-friendly'],
+    supplierNote: 'Direct drop from syringe distributor when carton MOQ met.',
   },
 ];
 
 export function getProduct(slug: string): Product | undefined {
   return products.find((p) => p.slug === slug);
+}
+
+export function priceForTier(product: Product, qty: number): { unit: number; tier: BuyerTier } {
+  if (product.wholesaleMoq && product.wholesalePrice && qty >= product.wholesaleMoq) {
+    return { unit: product.wholesalePrice, tier: 'wholesale' };
+  }
+  if (product.resellerPrice && qty >= Math.max(product.moq, 6)) {
+    return { unit: product.resellerPrice, tier: 'reseller' };
+  }
+  return { unit: product.price, tier: 'retail' };
 }

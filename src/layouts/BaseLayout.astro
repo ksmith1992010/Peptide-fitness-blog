@@ -5,16 +5,39 @@ interface Props {
   title: string;
   description?: string;
   ogType?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const {
   title,
   description = 'Amino Brief — peptide awareness with sources. Gym-floor clarity, PubMed receipts.',
   ogType = 'website',
+  jsonLd,
 } = Astro.props;
 
 const fullTitle = title === 'Amino Brief' ? title : `${title} · Amino Brief`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Amino Brief',
+  url: Astro.site?.toString() ?? 'https://aminobrief.com',
+  logo: new URL('/logo.svg', Astro.site).toString(),
+  description: 'Independent peptide awareness education, tools, and lab accessories.',
+};
+
+const siteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Amino Brief',
+  url: Astro.site?.toString() ?? 'https://aminobrief.com',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${Astro.site}guides?q={search_term_string}`,
+    'query-input': 'required name=search_term_string',
+  },
+};
 ---
 
 <!doctype html>
@@ -24,7 +47,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="author" content="Amino Brief Editorial" />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title="Amino Brief Guides" href="/rss" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -37,6 +63,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="Amino Brief" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(siteSchema)} />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <slot name="head" />
     <title>{fullTitle}</title>
   </head>
   <body>

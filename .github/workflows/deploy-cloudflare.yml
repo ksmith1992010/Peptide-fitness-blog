@@ -1,14 +1,13 @@
-name: Deploy Amino Brief to Cloudflare
+name: Build Amino Brief
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: cloudflare-pages-${{ github.ref }}
+  group: amino-brief-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,40 +31,3 @@ jobs:
 
       - name: Validate wrangler config
         run: npx wrangler deploy --dry-run --outdir=/tmp/wrangler-dry-run
-
-  # Optional: only runs if Cloudflare secrets are set.
-  # Primary deploy path is Cloudflare dashboard Git builds.
-  deploy:
-    needs: build
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Deploy to Cloudflare
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-
-      - name: Skip deploy notice
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' || secrets.CLOUDFLARE_ACCOUNT_ID == '' }}
-        run: echo "No Cloudflare secrets in GitHub — relying on Cloudflare dashboard Git deploy."

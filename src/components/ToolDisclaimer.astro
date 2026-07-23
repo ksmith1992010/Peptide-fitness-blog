@@ -1,0 +1,48 @@
+---
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+<aside class:list={['tool-warn', compact && 'compact']} role="note" aria-label="Medical disclaimer">
+  <strong>Not medical advice.</strong>
+  {
+    compact ? (
+      <span>
+        Educational unit math + research literacy only. Not a prescription, protocol, or instruction for human use.
+      </span>
+    ) : (
+      <span>
+        Amino Brief tools convert vial math and surface research-context notes. They do not diagnose, treat, dose, or
+        prescribe. Many research peptides are not FDA-approved for the uses people discuss online. Talk to a qualified
+        clinician about health decisions.
+      </span>
+    )
+  }
+</aside>
+
+<style>
+  .tool-warn {
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    background: #f3e5d4;
+    border: 1px solid #e0c19a;
+    border-left: 4px solid var(--warn);
+    border-radius: 4px;
+    padding: 0.85rem 1rem;
+    margin: 1rem 0;
+  }
+
+  .tool-warn.compact {
+    font-size: 0.82rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .tool-warn strong {
+    color: var(--warn);
+    margin-right: 0.35rem;
+  }
+</style>

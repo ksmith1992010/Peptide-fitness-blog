@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="SEO & AI discovery"
+  description="How Amino Brief is built for search engines and AI crawlers — schema, llms.txt, clusters, backlinks."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">Growth systems</p>
+      <h1>SEO, backlinks, AI crawlers</h1>
+      <p>
+        We studied what high-performing peptide education sites do structurally (schema, topical clusters, FAQ,
+        E-E-A-T) and implemented the same <em>systems</em> with original Amino Brief content — not scraped copy.
+      </p>
+
+      <h2>On-site (shipped)</h2>
+      <ul>
+        <li><code>/sitemap-index.xml</code> + per-page lastmod via Astro sitemap</li>
+        <li><code>/rss.xml</code> for guides</li>
+        <li><code>/llms.txt</code> + <code>/llms-full.txt</code> for AI crawlers</li>
+        <li>JSON-LD: Organization, WebSite, Article, Product, FAQPage where relevant</li>
+        <li>Evidence badges + author/publisher entity on guides</li>
+        <li>Internal links: Learn → Guides → Tools → Shop accessories</li>
+      </ul>
+
+      <h2>Backlink strategy (ops, not spam)</h2>
+      <ol>
+        <li>Pitch original explainers (COA literacy, evidence tiers) to wellness editors as citations</li>
+        <li>Guest data: publish unique reconstitution math explainers others can link</li>
+        <li>Resource page outreach: university lab safety / compounding literacy lists</li>
+        <li>Podcast / newsletter swaps with research-literacy creators (disclose relationships)</li>
+        <li>Never buy PBNs or fake medical citations</li>
+      </ol>
+
+      <h2>AI crawler play</h2>
+      <ul>
+        <li>Clean extractable answers in FAQ blocks (150–250 words)</li>
+        <li>Stable canonical URLs; no cloaking</li>
+        <li><code>llms.txt</code> points machines at pillars first</li>
+        <li>Update dates on revised guides</li>
+      </ul>
+
+      <h2>Benchmarks we mirrored (structure only)</h2>
+      <ul>
+        <li>Peptides Academy — tools + filterable education</li>
+        <li>Peptide Research USA — research-framed posts + library</li>
+        <li>Industry SEO playbooks — Product/FAQ/Article schema + clusters</li>
+      </ul>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

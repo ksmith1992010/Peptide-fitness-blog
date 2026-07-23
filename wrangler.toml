@@ -1,8 +1,0 @@
-# Amino Brief site — Cloudflare Workers static assets (Git build)
-# Worker names must be lowercase alphanumeric + dashes only
-name = "peptide-fitness-blog"
-compatibility_date = "2026-07-23"
-
-[assets]
-directory = "./dist"
-not_found_handling = "404-page"

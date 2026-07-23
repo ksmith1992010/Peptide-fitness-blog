@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "peptide-fitness-blog",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-07-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  // Add real KV bindings in the Cloudflare dashboard (Settings → Variables)
+  // or uncomment after: npx wrangler kv namespace create SUBSCRIBERS / NEWS_DRAFTS
+  // "kv_namespaces": [
+  //   { "binding": "SUBSCRIBERS", "id": "REPLACE_ME" },
+  //   { "binding": "NEWS_DRAFTS", "id": "REPLACE_ME" }
+  // ],
+  "triggers": {
+    "crons": ["0 */6 * * *"]
+  },
+  "observability": {
+    "enabled": true
+  }
+}
+
+# Deploy: KV placeholders removed — bind real namespaces in dashboard after first green deploy.

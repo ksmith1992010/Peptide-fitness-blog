@@ -1,0 +1,29 @@
+# Amino Brief — full machine index
+
+Site: https://aminobrief.com
+Tone: educational research literacy; not medical advice; accessories only in shop.
+
+## Guides
+- https://aminobrief.com/guides/what-peptides-actually-are
+- https://aminobrief.com/guides/approved-vs-research-compounds
+- https://aminobrief.com/guides/how-to-read-a-coa
+- https://aminobrief.com/guides/why-ruo-labels-exist
+- https://aminobrief.com/guides/evidence-tiers-cell-to-human
+- https://aminobrief.com/guides/bpc-157-evidence-snapshot
+- https://aminobrief.com/guides/reconstitution-math-without-the-guru
+- https://aminobrief.com/guides/mots-c-snapshot
+- https://aminobrief.com/guides/common-peptide-myths
+
+## Tools
+- https://aminobrief.com/tools/reconstitution
+- https://aminobrief.com/tools/syringe-units
+- https://aminobrief.com/tools/vial-math
+
+## Commerce (accessories only)
+- https://aminobrief.com/shop
+- Products include bacteriostatic water, U-100 syringes, carry cases, prep pads, empty vials, gloves, labels, recon kits, reseller packs — with MOQ / reseller / wholesale tiers.
+
+## Policies
+- No peptide compounds sold on this domain
+- Calculators are unit-conversion education
+- Newsroom desk drafts are unpublished until human review

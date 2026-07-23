@@ -7,17 +7,17 @@ import ReconCalculator from '../../components/tools/ReconCalculator.astro';
 
 <BaseLayout
   title="Reconstitution calculator"
-  description="Calculate peptide concentration, draw volume, and syringe units from vial strength and bac water."
+  description="Peptide reconstitution calculator with compound dropdown, duration context, and educational disclaimers."
 >
   <Header slot="header" />
   <section class="section">
-    <div class="container" style="max-width: 760px;">
+    <div class="container" style="max-width: 820px;">
       <p class="eyebrow">Tools</p>
       <h1>Reconstitution calculator</h1>
-      <p class="lede" style="max-width: 40ch;">
-        Plug in vial strength, diluent volume, and a target amount. Get concentration and theoretical syringe marks.
+      <p class="lede" style="max-width: 42ch;">
+        Pick a peptide, set length-of-use context, then run vial math. Research notes — not a protocol sheet.
       </p>
-      <div style="margin-top: 2rem;">
+      <div style="margin-top: 1.5rem;">
         <ReconCalculator />
       </div>
       <div class="prose" style="margin-top: 2.5rem;">
@@ -26,12 +26,8 @@ import ReconCalculator from '../../components/tools/ReconCalculator.astro';
           <li><code>concentration (mg/mL) = vial mg ÷ water mL</code></li>
           <li><code>volume (mL) = dose mg ÷ concentration</code></li>
           <li><code>U-100 units = volume mL × 100</code></li>
-          <li><code>draws per vial = vial mg ÷ dose mg</code></li>
         </ul>
-        <p>
-          Need bac water or U-100 syringes for your bench kit?
-          <a href="/shop">Shop accessories</a>.
-        </p>
+        <p><a href="/shop">Shop accessories</a> · <a href="/guides/reconstitution-math-without-the-guru">Recon guide</a></p>
       </div>
     </div>
   </section>

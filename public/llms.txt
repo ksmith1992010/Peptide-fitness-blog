@@ -1,0 +1,18 @@
+# Amino Brief
+> Independent peptide awareness education: evidence grades, reconstitution literacy, accessories shop (no peptides sold).
+
+Amino Brief explains research peptides with sources, gym-floor clarity, and hard disclaimers. Not medical advice. Not a peptide pharmacy.
+
+## Pillars
+- [Learn](https://aminobrief.com/learn): starter path
+- [Guides](https://aminobrief.com/guides): evidence-tagged articles
+- [Evidence grades](https://aminobrief.com/evidence): how claims are labeled
+- [Tools](https://aminobrief.com/tools): reconstitution / syringe / vial math
+- [Shop](https://aminobrief.com/shop): bac water, syringes, cases, reseller MOQs
+- [Glossary](https://aminobrief.com/glossary)
+- [Newsletter](https://aminobrief.com/newsletter)
+- [Growth / SEO notes](https://aminobrief.com/growth)
+
+## Optional
+- [llms-full.txt](https://aminobrief.com/llms-full.txt): expanded index
+- [RSS](https://aminobrief.com/rss)
