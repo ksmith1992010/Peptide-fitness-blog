@@ -26,16 +26,25 @@ interface NewsItem {
   status: 'draft';
 }
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin') || '';
+  const allowed =
+    origin === 'https://aminobrief.com' ||
+    origin.endsWith('.workers.dev') ||
+    origin.startsWith('http://localhost:') ||
+    origin.startsWith('http://127.0.0.1:');
+  return {
+    'Access-Control-Allow-Origin': allowed ? origin : 'https://aminobrief.com',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    Vary: 'Origin',
+  };
+}
 
-function json(data: unknown, status = 200): Response {
+function json(data: unknown, status = 200, request?: Request): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', ...cors },
+    headers: { 'Content-Type': 'application/json', ...(request ? corsHeaders(request) : {}) },
   });
 }
 
@@ -44,8 +53,8 @@ function isEmail(value: string): boolean {
 }
 
 async function handleNewsletter(request: Request, env: Env): Promise<Response> {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
-  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, request);
 
   const body = (await request.json().catch(() => null)) as {
     email?: string;
@@ -53,26 +62,27 @@ async function handleNewsletter(request: Request, env: Env): Promise<Response> {
     company?: string;
   } | null;
 
-  if (!body?.email || !isEmail(body.email)) return json({ error: 'Valid email required' }, 400);
+  if (!body?.email || !isEmail(body.email)) return json({ error: 'Valid email required' }, 400, request);
   // honeypot
-  if (body.company) return json({ message: 'You’re on the list.' });
+  if (body.company) return json({ message: 'Thanks — you’re on the Amino Brief list (or already were).' }, 200, request);
 
   const email = body.email.trim().toLowerCase();
   const key = `email:${email}`;
   const existing = await env.SUBSCRIBERS.get(key);
-  if (existing) return json({ message: 'Already subscribed — you’re good.' });
+  if (!existing) {
+    await env.SUBSCRIBERS.put(
+      key,
+      JSON.stringify({
+        email,
+        name: (body.name || '').trim().slice(0, 120),
+        createdAt: new Date().toISOString(),
+        source: 'amino-brief-web',
+      }),
+    );
+  }
 
-  await env.SUBSCRIBERS.put(
-    key,
-    JSON.stringify({
-      email,
-      name: (body.name || '').trim().slice(0, 120),
-      createdAt: new Date().toISOString(),
-      source: 'amino-brief-web',
-    }),
-  );
-
-  return json({ message: 'Subscribed. Welcome to Amino Brief.' });
+  // Same message whether new or existing — avoid email enumeration
+  return json({ message: 'Thanks — you’re on the Amino Brief list (or already were).' }, 200, request);
 }
 
 function stripHtml(html: string): string {
@@ -83,19 +93,30 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function parseRssItems(xml: string, source: string, limit = 8): { title: string; url: string; summary: string; publishedAt: string }[] {
+function safeHttpUrl(value: string): string | null {
+  try {
+    const u = new URL(value);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+function parseRssItems(xml: string, _source: string, limit = 8): { title: string; url: string; summary: string; publishedAt: string }[] {
   const items: { title: string; url: string; summary: string; publishedAt: string }[] = [];
   const blocks = xml.split(/<item[\s>]/i).slice(1);
   for (const block of blocks) {
     if (items.length >= limit) break;
-    const title = stripHtml((block.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '');
-    const link = stripHtml((block.match(/<link[^>]*>([\s\S]*?)<\/link>/i) || [])[1] || '');
-    const desc = stripHtml((block.match(/<description[^>]*>([\s\S]*?)<\/description>/i) || [])[1] || '');
+    const title = stripHtml((block.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').slice(0, 300);
+    const linkRaw = stripHtml((block.match(/<link[^>]*>([\s\S]*?)<\/link>/i) || [])[1] || '');
+    const link = safeHttpUrl(linkRaw);
+    const desc = stripHtml((block.match(/<description[^>]*>([\s\S]*?)<\/description>/i) || [])[1] || '').slice(0, 280);
     const pub = stripHtml((block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i) || [])[1] || new Date().toISOString());
     if (!title || !link) continue;
-    items.push({ title, url: link, summary: desc.slice(0, 280), publishedAt: pub, });
+    items.push({ title, url: link, summary: desc, publishedAt: pub });
   }
-  return items.map((i) => ({ ...i, /* source tagged later */ }));
+  return items;
 }
 
 async function fetchFeeds(): Promise<{ title: string; url: string; summary: string; publishedAt: string; source: string }[]> {
@@ -200,18 +221,22 @@ export async function runNewsLoop(env: Env): Promise<{ created: number; drafts: 
 }
 
 async function listDrafts(env: Env): Promise<NewsItem[]> {
-  const list = await env.NEWS_DRAFTS.list({ prefix: 'draft:' });
   const drafts: NewsItem[] = [];
-  for (const key of list.keys.slice(0, 40)) {
-    const raw = await env.NEWS_DRAFTS.get(key.name);
-    if (!raw) continue;
-    try {
-      drafts.push(JSON.parse(raw) as NewsItem);
-    } catch {
-      // skip bad
+  let cursor: string | undefined;
+  do {
+    const page = await env.NEWS_DRAFTS.list({ prefix: 'draft:', cursor, limit: 100 });
+    for (const key of page.keys) {
+      const raw = await env.NEWS_DRAFTS.get(key.name);
+      if (!raw) continue;
+      try {
+        drafts.push(JSON.parse(raw) as NewsItem);
+      } catch {
+        // skip bad
+      }
     }
-  }
-  return drafts.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
+  return drafts.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 50);
 }
 
 async function handleApi(request: Request, env: Env): Promise<Response> {
@@ -221,38 +246,45 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === '/api/news/drafts' && request.method === 'GET') {
     const drafts = await listDrafts(env);
-    return json({
-      drafts: drafts.map((d) => ({
-        id: d.id,
-        title: d.title,
-        url: d.url,
-        source: d.source,
-        summary: d.summary,
-        createdAt: d.createdAt,
-        status: d.status,
-      })),
-      lastRun: await env.NEWS_DRAFTS.get('meta:last-run'),
-    });
+    return json(
+      {
+        drafts: drafts.map((d) => ({
+          id: d.id,
+          title: d.title,
+          url: d.url,
+          source: d.source,
+          summary: d.summary,
+          createdAt: d.createdAt,
+          status: d.status,
+        })),
+        lastRun: await env.NEWS_DRAFTS.get('meta:last-run'),
+      },
+      200,
+      request,
+    );
   }
 
-  if (url.pathname === '/api/news/drafts/' || url.pathname.startsWith('/api/news/drafts/')) {
+  // Full draft markdown is staff-only
+  if (url.pathname.startsWith('/api/news/drafts/') && request.method === 'GET') {
+    const auth = request.headers.get('Authorization') || '';
+    const secret = env.NEWS_TRIGGER_SECRET;
+    if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401, request);
     const id = url.pathname.split('/').pop();
-    if (id && request.method === 'GET') {
-      const raw = await env.NEWS_DRAFTS.get(`draft:${id}`);
-      if (!raw) return json({ error: 'Not found' }, 404);
-      return json(JSON.parse(raw));
-    }
+    if (!id) return json({ error: 'Not found' }, 404, request);
+    const raw = await env.NEWS_DRAFTS.get(`draft:${id}`);
+    if (!raw) return json({ error: 'Not found' }, 404, request);
+    return json(JSON.parse(raw), 200, request);
   }
 
   if (url.pathname === '/api/news/run' && request.method === 'POST') {
     const auth = request.headers.get('Authorization') || '';
     const secret = env.NEWS_TRIGGER_SECRET;
-    if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401);
+    if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401, request);
     const result = await runNewsLoop(env);
-    return json(result);
+    return json(result, 200, request);
   }
 
-  return json({ error: 'Not found' }, 404);
+  return json({ error: 'Not found' }, 404, request);
 }
 
 export default {
@@ -262,7 +294,7 @@ export default {
       try {
         return await handleApi(request, env);
       } catch (err) {
-        return json({ error: err instanceof Error ? err.message : 'Server error' }, 500);
+        return json({ error: err instanceof Error ? err.message : 'Server error' }, 500, request);
       }
     }
     return env.ASSETS.fetch(request);

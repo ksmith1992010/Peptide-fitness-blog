@@ -30,6 +30,17 @@ import Footer from '../components/Footer.astro';
 <script>
   const status = document.querySelector('[data-desk-status]');
   const list = document.querySelector('[data-desk-list]');
+
+  function safeHttpUrl(value) {
+    try {
+      const u = new URL(value);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      return u.toString();
+    } catch {
+      return null;
+    }
+  }
+
   async function load() {
     try {
       const res = await fetch('/api/news/drafts');
@@ -43,8 +54,28 @@ import Footer from '../components/Footer.astro';
       status.textContent = `${drafts.length} draft(s). Last run meta: ${data.lastRun || 'n/a'}`;
       list.innerHTML = '';
       for (const d of drafts) {
+        const href = safeHttpUrl(d.url);
+        if (!href) continue;
         const li = document.createElement('li');
-        li.innerHTML = `<a href="${d.url}" rel="noopener noreferrer"><div class="meta">${d.source} · ${new Date(d.createdAt).toLocaleString()} · ${d.status}</div><h3>${d.title}</h3><p style="margin:0.35rem 0 0;color:var(--mute)">${d.summary || ''}</p></a>`;
+        const a = document.createElement('a');
+        a.href = href;
+        a.rel = 'noopener noreferrer';
+        a.target = '_blank';
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = `${d.source || 'feed'} · ${new Date(d.createdAt).toLocaleString()} · ${d.status || 'draft'}`;
+
+        const h3 = document.createElement('h3');
+        h3.textContent = d.title || 'Untitled draft';
+
+        const p = document.createElement('p');
+        p.style.margin = '0.35rem 0 0';
+        p.style.color = 'var(--mute)';
+        p.textContent = d.summary || '';
+
+        a.append(meta, h3, p);
+        li.appendChild(a);
         list.appendChild(li);
       }
     } catch (err) {
