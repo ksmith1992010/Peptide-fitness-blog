@@ -20,6 +20,7 @@ const productSchema = {
   name: product.name,
   description: product.blurb,
   sku: product.sku,
+  image: new URL(product.image, Astro.site).toString(),
   brand: { '@type': 'Brand', name: 'Amino Brief' },
   offers: {
     '@type': 'Offer',
@@ -37,6 +38,14 @@ const productSchema = {
     <div class="container" style="max-width: 720px;">
       <p class="eyebrow">Shop · {product.sku} · {product.category}</p>
       <h1 style="max-width: 14ch;">{product.name}</h1>
+      <img
+        class="product-hero"
+        src={product.image}
+        alt={product.imageAlt}
+        width="900"
+        height="900"
+        style="width: 100%; max-width: 420px; aspect-ratio: 1; object-fit: cover; margin: 1.25rem 0; border: 1px solid var(--line); background: var(--paper-2);"
+      />
       <p class="price" style="font-family: var(--font-display); font-size: 2.4rem; margin: 0.5rem 0 0.35rem;">
         ${product.price}
       </p>
