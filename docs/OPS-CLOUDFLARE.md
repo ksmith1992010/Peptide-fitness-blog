@@ -4,25 +4,16 @@ Worker name: `peptide-fitness-blog`
 Account (from prior deploys): `77d22fce8be7e3ee2422baac6ce999e6`  
 Dashboard: https://dash.cloudflare.com/77d22fce8be7e3ee2422baac6ce999e6/workers/services/view/peptide-fitness-blog/production
 
-## 1. Create + bind KV
+## 1. KV namespaces (done)
 
-In the dashboard (Workers → peptide-fitness-blog → Settings → Bindings), create and bind:
+Bound in `wrangler.jsonc` (so Git deploys keep them):
 
-| Binding name   | Purpose                          |
-|----------------|----------------------------------|
-| `SUBSCRIBERS`  | Newsletter emails                |
-| `NEWS_DRAFTS`  | Desk drafts from RSS cron        |
+| Binding name   | Namespace ID                         | Purpose |
+|----------------|--------------------------------------|---------|
+| `SUBSCRIBERS`  | `6377df563ff94e5b95d4619923ae6a49` | Newsletter emails |
+| `NEWS_DRAFTS`  | `3a64f9be3db54b59a0ff2ba1612ae90f` | Desk drafts from RSS cron |
 
-Or via CLI (when authenticated):
-
-```bash
-npx wrangler kv namespace create SUBSCRIBERS
-npx wrangler kv namespace create NEWS_DRAFTS
-```
-
-Then add the returned IDs under `kv_namespaces` in `wrangler.jsonc` **or** bind only in the dashboard (preferred if Git deploy manages config carefully).
-
-Placeholder fake IDs (`0000…`) break deploy (error 10041) — never commit those.
+`NEWS_TRIGGER_SECRET` is set in the Worker dashboard (never commit secrets).
 
 ## 2. Secrets
 
