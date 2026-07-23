@@ -386,7 +386,7 @@ const publishSteps = [
       if (draftActionStatus) draftActionStatus.textContent = 'Save the desk secret first.';
       return;
     }
-    if (draftActionStatus) draftActionStatus.textContent = 'Running Workers AI rewrite…';
+      if (draftActionStatus) draftActionStatus.textContent = 'Running AI rewrite (Grok → Llama fallback)…';
     try {
       const res = await fetch(`/api/news/drafts/${activeDraftId}/rewrite`, {
         method: 'POST',
@@ -395,7 +395,9 @@ const publishSteps = [
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Rewrite failed');
       if (draftBody) draftBody.textContent = data.aiRewrite || '';
-      if (draftActionStatus) draftActionStatus.textContent = 'AI rewrite saved on draft — still needs human edit.';
+      if (draftActionStatus) {
+        draftActionStatus.textContent = `AI rewrite saved (${data.aiModel || 'model unknown'}) — still needs human edit.`;
+      }
       await load();
     } catch (err) {
       if (draftActionStatus) {

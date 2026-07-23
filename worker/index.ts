@@ -50,6 +50,7 @@ interface NewsItem {
   status: 'draft';
   aiRewrite?: string;
   aiRewrittenAt?: string;
+  aiModel?: string;
 }
 
 function requireStaff(request: Request, env: Env): Response | null {
@@ -560,6 +561,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
           staffSecret: Boolean(env.NEWS_TRIGGER_SECRET),
         },
         pricedSkus: Object.keys(stripePriceMap(env)),
+        deskRewriteModels: ['xai/grok-4.5', '@cf/meta/llama-3.1-8b-instruct'],
       },
       200,
       request,
@@ -611,10 +613,15 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (!raw) return json({ error: 'Not found' }, 404, request);
     const draft = JSON.parse(raw) as NewsItem;
     const rewrite = await rewriteDraftWithAi(env, draft);
-    draft.aiRewrite = rewrite;
+    draft.aiRewrite = rewrite.text;
     draft.aiRewrittenAt = new Date().toISOString();
+    draft.aiModel = rewrite.model;
     await env.NEWS_DRAFTS.put(`draft:${id}`, JSON.stringify(draft));
-    return json({ id, aiRewrite: rewrite, aiRewrittenAt: draft.aiRewrittenAt }, 200, request);
+    return json(
+      { id, aiRewrite: rewrite.text, aiRewrittenAt: draft.aiRewrittenAt, aiModel: rewrite.model },
+      200,
+      request,
+    );
   }
 
   // Full draft markdown is staff-only
@@ -644,9 +651,34 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   return json({ error: 'Not found' }, 404, request);
 }
 
-async function rewriteDraftWithAi(env: Env, draft: NewsItem): Promise<string> {
-  const prompt = `You are an editor for Amino Brief, an educational peptide-literacy site.
-Rewrite the desk draft below into a tighter editorial brief.
+async function extractAiText(result: unknown): Promise<string> {
+  if (!result) return '';
+  if (typeof result === 'string') return result.trim();
+  const obj = result as {
+    response?: string;
+    output_text?: string;
+    choices?: { message?: { content?: string | { type?: string; text?: string }[] } }[];
+  };
+  if (typeof obj.response === 'string' && obj.response.trim()) return obj.response.trim();
+  if (typeof obj.output_text === 'string' && obj.output_text.trim()) return obj.output_text.trim();
+  const content = obj.choices?.[0]?.message?.content;
+  if (typeof content === 'string' && content.trim()) return content.trim();
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => (typeof part === 'string' ? part : part?.text || ''))
+      .join('')
+      .trim();
+  }
+  return '';
+}
+
+async function rewriteDraftWithAi(
+  env: Env,
+  draft: NewsItem,
+): Promise<{ text: string; model: string }> {
+  const system =
+    'You write careful research-literacy markdown for Amino Brief — gym-floor clarity with sources. Educational only; never prescribe dosing or medical protocols.';
+  const user = `Rewrite the desk draft below into a tighter editorial brief.
 
 Rules:
 - Educational / research framing only — never prescribe dosing or medical protocols
@@ -664,19 +696,42 @@ Feed summary: ${draft.summary}
 Original draft:
 ${draft.draftMarkdown}`;
 
-  const result = (await env.AI!.run('@cf/meta/llama-3.1-8b-instruct', {
-    messages: [
-      { role: 'system', content: 'You write careful research-literacy markdown for Amino Brief.' },
-      { role: 'user', content: prompt },
-    ],
-    max_tokens: 1200,
-  })) as { response?: string };
+  const messages = [
+    { role: 'system', content: system },
+    { role: 'user', content: user },
+  ];
 
-  const text = (result.response || '').trim();
-  if (!text) {
-    throw new Error('Workers AI returned an empty rewrite');
+  // Prefer Grok when Cloudflare AI catalog + billing allow it; fall back to Llama.
+  const attempts: { model: string; input: Record<string, unknown> }[] = [
+    {
+      model: 'xai/grok-4.5',
+      input: {
+        messages,
+        max_completion_tokens: 2048,
+        reasoning_effort: 'medium',
+      },
+    },
+    {
+      model: '@cf/meta/llama-3.1-8b-instruct',
+      input: {
+        messages,
+        max_tokens: 1200,
+      },
+    },
+  ];
+
+  let lastError = 'Workers AI returned an empty rewrite';
+  for (const attempt of attempts) {
+    try {
+      const result = await env.AI!.run(attempt.model as Parameters<NonNullable<Env['AI']>['run']>[0], attempt.input);
+      const text = await extractAiText(result);
+      if (text) return { text, model: attempt.model };
+      lastError = `${attempt.model} returned empty output`;
+    } catch (err) {
+      lastError = err instanceof Error ? `${attempt.model}: ${err.message}` : String(err);
+    }
   }
-  return text;
+  throw new Error(lastError);
 }
 
 export default {
