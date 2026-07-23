@@ -54,8 +54,8 @@ interface NewsItem {
 }
 
 function requireStaff(request: Request, env: Env): Response | null {
-  const auth = request.headers.get('Authorization') || '';
-  const secret = env.NEWS_TRIGGER_SECRET;
+  const auth = (request.headers.get('Authorization') || '').trim();
+  const secret = (env.NEWS_TRIGGER_SECRET || '').trim();
   if (!secret || auth !== `Bearer ${secret}`) {
     return json({ error: 'Unauthorized' }, 401, request);
   }

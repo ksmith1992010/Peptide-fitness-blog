@@ -227,7 +227,10 @@ const publishSteps = [
       if (staffStatus) staffStatus.textContent = 'Paste a secret first.';
       return;
     }
-    sessionStorage.setItem(TOKEN_KEY, value);
+    // strip accidental "Bearer " prefix if pasted from docs
+    const cleaned = value.replace(/^Bearer\s+/i, '').trim();
+    sessionStorage.setItem(TOKEN_KEY, cleaned);
+    if (tokenInput) tokenInput.value = cleaned;
     if (staffStatus) staffStatus.textContent = 'Saved in this browser session.';
   });
 
