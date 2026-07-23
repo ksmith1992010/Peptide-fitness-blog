@@ -100,6 +100,7 @@ export const seoClusters: SeoCluster[] = [
       { label: 'How to read a COA', path: '/guides/how-to-read-a-coa' },
       { label: 'Why RUO labels exist', path: '/guides/why-ruo-labels-exist' },
       { label: 'Evaluate a source', path: '/guides/how-to-evaluate-a-peptide-source' },
+      { label: 'Navigate the gray market', path: '/guides/navigating-the-peptide-gray-market' },
       { label: 'Storage literacy', path: '/guides/storage-and-cold-chain-literacy' },
       { label: 'Sourcing notes', path: '/resources/sourcing-notes' },
     ],

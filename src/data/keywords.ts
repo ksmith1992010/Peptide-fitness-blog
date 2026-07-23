@@ -45,6 +45,18 @@ export const keywordTargets: KeywordTarget[] = [
     linkable: true,
   },
   {
+    primary: 'peptide gray market',
+    secondaries: [
+      'how to navigate peptide gray market',
+      'research peptide sourcing',
+      'RUO peptide vendors literacy',
+    ],
+    path: '/guides/navigating-the-peptide-gray-market',
+    intent: 'informational',
+    note: 'High curiosity intent; win with criteria-first literacy, not vendor spam.',
+    linkable: true,
+  },
+  {
     primary: 'peptide reconstitution calculator',
     secondaries: [
       'reconstitution math mg mL units',
