@@ -39,11 +39,13 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 - https://aminobrief.com/editorial
 - https://aminobrief.com/authors
 - https://aminobrief.com/faq
+- https://aminobrief.com/contact
 - https://aminobrief.com/outreach
 - https://aminobrief.com/desk
-- Desk staff tools: Bearer NEWS_TRIGGER_SECRET for full markdown + Workers AI rewrite assist
-- Publish path: desk draft → human edit → src/content/guides/*.md PR (never auto-publish)
-- Newsletter: KV + optional Resend audience sync / staff broadcast endpoint
+- Desk staff tools: Bearer NEWS_TRIGGER_SECRET for full markdown + Workers AI rewrite assist + Resend backfill
+- Publish path: desk draft → human edit → src/content/guides/*.md PR (copy PR body from desk; never auto-publish)
+- Newsletter: KV + optional Resend audience sync / broadcast / backfill
+- Health: GET /api/health (binding booleans only)
 
 ## Policies
 - No peptide compounds sold on this domain

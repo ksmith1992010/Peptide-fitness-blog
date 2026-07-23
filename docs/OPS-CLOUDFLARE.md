@@ -52,6 +52,8 @@ Optional: `PUBLIC_SITE_URL=https://aminobrief.com` for Stripe success/cancel URL
 
 - `POST /api/newsletter` — public signup → KV; also syncs to Resend audience when `RESEND_API_KEY` + `RESEND_AUDIENCE_ID` are set
 - `POST /api/newsletter/broadcast` — staff Bearer token; body `{ subject, html, dryRun?, limit? }` sends via Resend (capped)
+- `POST /api/newsletter/backfill` — staff Bearer token; sync existing KV subscribers into the Resend audience (capped)
+- `GET /api/health` — binding booleans (no secret values)
 
 ## 3. Workers AI
 

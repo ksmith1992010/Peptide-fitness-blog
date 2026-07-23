@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Contact"
+  description="Reach Amino Brief editorial or accessory order desks — educational site, not a clinic."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">Contact</p>
+      <h1>Write the desk</h1>
+      <p class="lede" style="max-width: 40ch;">We read mail. We don’t diagnose, prescribe, or sell peptides.</p>
+
+      <h2>Editorial / corrections</h2>
+      <p>
+        Spot an error or want a source noted?
+        <a href="mailto:editorial@aminobrief.com">editorial@aminobrief.com</a>
+      </p>
+
+      <h2>Accessory orders / reseller</h2>
+      <p>
+        MOQ and wholesale questions:
+        <a href="mailto:orders@aminobrief.com">orders@aminobrief.com</a>
+        — or use the order form on each <a href="/shop">shop</a> SKU.
+      </p>
+
+      <h2>Newsletter</h2>
+      <p>
+        Prefer the form on <a href="/newsletter">/newsletter</a>. Unsubscribe links ship with every send once Resend is
+        live.
+      </p>
+
+      <p class="disclaimer">
+        Do not email medical histories or dosing questions expecting clinical advice. We won’t provide it.
+      </p>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

@@ -17,6 +17,12 @@ import { products } from '../../data/products';
       <p class="lede">
         Bac water, syringes, cases, kits. Peptides are not sold here. MOQ and reseller breaks shown on each SKU.
       </p>
+      <p
+        data-checkout-banner
+        role="status"
+        aria-live="polite"
+        style="display: none; font-family: var(--font-ui); margin: 1rem 0 0; color: var(--teal-deep);"
+      ></p>
 
       <div class="pill-filters" data-shop-filters>
         <button type="button" data-filter="all" aria-pressed="true">All</button>
@@ -60,6 +66,15 @@ import { products } from '../../data/products';
 <script>
   const toolbar = document.querySelector('[data-shop-filters]');
   const grid = document.querySelector('[data-shop-grid]');
+  const banner = document.querySelector('[data-checkout-banner]');
+  const checkout = new URLSearchParams(window.location.search).get('checkout');
+  if (banner && checkout === 'success') {
+    banner.style.display = 'block';
+    banner.textContent = 'Checkout completed — check your email for the Stripe receipt. Reseller MOQs still use email order requests.';
+  } else if (banner && checkout === 'cancel') {
+    banner.style.display = 'block';
+    banner.textContent = 'Checkout canceled. You can retry a SKU page or email an MOQ order request.';
+  }
   toolbar?.addEventListener('click', (event) => {
     const btn = event.target.closest('button[data-filter]');
     if (!btn || !grid) return;

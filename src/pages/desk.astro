@@ -40,6 +40,8 @@ const publishSteps = [
           <button class="btn btn-primary" type="button" data-save-token>Save in session</button>
           <button class="btn btn-secondary" type="button" data-run-news>Run news pull now</button>
           <button class="btn btn-secondary" type="button" data-broadcast-dry>Newsletter dry-run</button>
+          <button class="btn btn-secondary" type="button" data-backfill-resend>Resend backfill</button>
+          <button class="btn btn-secondary" type="button" data-health>API health</button>
           <button class="btn btn-secondary" type="button" data-clear-token>Clear</button>
         </div>
         <p data-staff-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
@@ -64,6 +66,7 @@ const publishSteps = [
           <button class="btn btn-primary" type="button" data-copy-md>Copy markdown</button>
           <button class="btn btn-secondary" type="button" data-ai-rewrite>AI rewrite assist</button>
           <button class="btn btn-secondary" type="button" data-copy-checklist>Copy publish checklist</button>
+          <button class="btn btn-secondary" type="button" data-copy-pr>Copy GitHub PR body</button>
         </div>
         <p data-draft-action-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0;"></p>
         <pre
@@ -281,6 +284,43 @@ const publishSteps = [
     }
   });
 
+  document.querySelector('[data-backfill-resend]')?.addEventListener('click', async () => {
+    if (!getToken()) {
+      if (staffStatus) staffStatus.textContent = 'Save the desk secret first.';
+      return;
+    }
+    if (staffStatus) staffStatus.textContent = 'Backfilling KV → Resend audience…';
+    try {
+      const res = await fetch('/api/newsletter/backfill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ limit: 50 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Backfill failed');
+      if (staffStatus) {
+        staffStatus.textContent = `Backfill synced ${data.synced ?? 0}/${data.attempted ?? 0}.`;
+      }
+    } catch (err) {
+      if (staffStatus) staffStatus.textContent = err instanceof Error ? err.message : 'Backfill failed';
+    }
+  });
+
+  document.querySelector('[data-health]')?.addEventListener('click', async () => {
+    if (staffStatus) staffStatus.textContent = 'Checking /api/health…';
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Health failed');
+      const b = data.bindings || {};
+      if (staffStatus) {
+        staffStatus.textContent = `KV subscribers=${b.subscribers} drafts=${b.newsDrafts} · AI=${b.ai} · Stripe=${b.stripe} · Resend=${b.resend} · staff=${b.staffSecret}`;
+      }
+    } catch (err) {
+      if (staffStatus) staffStatus.textContent = err instanceof Error ? err.message : 'Health failed';
+    }
+  });
+
   document.querySelector('[data-copy-md]')?.addEventListener('click', async () => {
     const text = draftBody?.textContent || '';
     if (!text) return;
@@ -303,6 +343,41 @@ const publishSteps = [
     ].join('\n');
     await navigator.clipboard.writeText(checklist);
     if (draftActionStatus) draftActionStatus.textContent = 'Publish checklist copied.';
+  });
+
+  document.querySelector('[data-copy-pr]')?.addEventListener('click', async () => {
+    const title = draftTitle?.textContent || 'Desk draft';
+    const slug = slugify(title);
+    const body = draftBody?.textContent || '';
+    const pr = [
+      `## Summary`,
+      ``,
+      `Publish desk draft as guide: **${title}**`,
+      ``,
+      `## File`,
+      ``,
+      `- Path: \`src/content/guides/${slug}.md\``,
+      `- Source: newsroom desk (human-edited; not auto-published)`,
+      ``,
+      `## Checklist`,
+      ``,
+      `- [ ] Fact-checked against primary sources`,
+      `- [ ] Evidence grade set`,
+      `- [ ] No dosing / protocol language`,
+      `- [ ] Internal links added`,
+      `- [ ] Disclaimer retained`,
+      ``,
+      `## Draft markdown`,
+      ``,
+      '```md',
+      body,
+      '```',
+      ``,
+    ].join('\n');
+    await navigator.clipboard.writeText(pr);
+    if (draftActionStatus) {
+      draftActionStatus.textContent = 'GitHub PR body copied — create branch, add the .md file, paste this into the PR.';
+    }
   });
 
   document.querySelector('[data-ai-rewrite]')?.addEventListener('click', async () => {

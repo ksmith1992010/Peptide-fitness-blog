@@ -2,8 +2,10 @@
  * Amino Brief Cloudflare Worker
  * - /api/newsletter           POST subscribe → KV (+ optional Resend audience)
  * - /api/newsletter/broadcast POST staff broadcast via Resend
+ * - /api/newsletter/backfill  POST staff KV → Resend audience sync
  * - /api/checkout             POST Stripe Checkout session
  * - /api/checkout/priced      GET priced SKU list
+ * - /api/health               GET binding status (no secrets)
  * - /api/news/drafts          GET list drafts
  * - /api/news/drafts/:id      GET full markdown (staff)
  * - /api/news/drafts/:id/rewrite POST Workers AI assist (staff)
@@ -208,9 +210,12 @@ async function syncResendContact(env: Env, email: string, name: string): Promise
   }
 }
 
-async function listSubscriberEmails(env: Env, limit = 200): Promise<string[]> {
+async function listSubscriberRecords(
+  env: Env,
+  limit = 200,
+): Promise<{ email: string; name: string }[]> {
   if (!env.SUBSCRIBERS) return [];
-  const emails: string[] = [];
+  const rows: { email: string; name: string }[] = [];
   let cursor: string | undefined;
   do {
     const page = await env.SUBSCRIBERS.list({ prefix: 'email:', cursor, limit: 100 });
@@ -218,16 +223,22 @@ async function listSubscriberEmails(env: Env, limit = 200): Promise<string[]> {
       const raw = await env.SUBSCRIBERS.get(key.name);
       if (!raw) continue;
       try {
-        const row = JSON.parse(raw) as { email?: string };
-        if (row.email && isEmail(row.email)) emails.push(row.email);
+        const row = JSON.parse(raw) as { email?: string; name?: string };
+        if (row.email && isEmail(row.email)) {
+          rows.push({ email: row.email, name: (row.name || '').slice(0, 120) });
+        }
       } catch {
         // skip
       }
-      if (emails.length >= limit) return emails;
+      if (rows.length >= limit) return rows;
     }
     cursor = page.list_complete ? undefined : page.cursor;
   } while (cursor);
-  return emails;
+  return rows;
+}
+
+async function listSubscriberEmails(env: Env, limit = 200): Promise<string[]> {
+  return (await listSubscriberRecords(env, limit)).map((r) => r.email);
 }
 
 async function handleNewsletterBroadcast(request: Request, env: Env): Promise<Response> {
@@ -278,6 +289,37 @@ async function handleNewsletterBroadcast(request: Request, env: Env): Promise<Re
   }
 
   return json({ sent, attempted: recipients.length, errors: errors.slice(0, 10) }, 200, request);
+}
+
+async function handleNewsletterBackfill(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, request);
+  const denied = requireStaff(request, env);
+  if (denied) return denied;
+  if (!env.RESEND_API_KEY || !env.RESEND_AUDIENCE_ID) {
+    return json({ error: 'Set RESEND_API_KEY and RESEND_AUDIENCE_ID secrets' }, 503, request);
+  }
+  if (!env.SUBSCRIBERS) return json({ error: 'SUBSCRIBERS KV not configured' }, 503, request);
+
+  const body = (await request.json().catch(() => null)) as { limit?: number; dryRun?: boolean } | null;
+  const limit = Math.max(1, Math.min(200, Number(body?.limit || 50)));
+  const rows = await listSubscriberRecords(env, limit);
+
+  if (body?.dryRun) {
+    return json({ dryRun: true, wouldSync: rows.length }, 200, request);
+  }
+
+  let synced = 0;
+  const errors: string[] = [];
+  for (const row of rows) {
+    try {
+      await syncResendContact(env, row.email, row.name);
+      synced += 1;
+    } catch (err) {
+      errors.push(`${row.email}:${err instanceof Error ? err.message : 'fail'}`);
+    }
+  }
+  return json({ synced, attempted: rows.length, errors: errors.slice(0, 10) }, 200, request);
 }
 
 function stripHtml(html: string): string {
@@ -501,7 +543,28 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === '/api/newsletter') return handleNewsletter(request, env);
   if (url.pathname === '/api/newsletter/broadcast') return handleNewsletterBroadcast(request, env);
+  if (url.pathname === '/api/newsletter/backfill') return handleNewsletterBackfill(request, env);
   if (url.pathname === '/api/checkout') return handleStripeCheckout(request, env);
+  if (url.pathname === '/api/health' && request.method === 'GET') {
+    return json(
+      {
+        ok: true,
+        service: 'amino-brief',
+        bindings: {
+          subscribers: Boolean(env.SUBSCRIBERS),
+          newsDrafts: Boolean(env.NEWS_DRAFTS),
+          ai: Boolean(env.AI),
+          turnstile: Boolean(env.TURNSTILE_SECRET_KEY),
+          stripe: Boolean(env.STRIPE_SECRET_KEY),
+          resend: Boolean(env.RESEND_API_KEY),
+          staffSecret: Boolean(env.NEWS_TRIGGER_SECRET),
+        },
+        pricedSkus: Object.keys(stripePriceMap(env)),
+      },
+      200,
+      request,
+    );
+  }
 
   if (url.pathname === '/api/news/drafts' && request.method === 'GET') {
     if (!env.NEWS_DRAFTS) {
