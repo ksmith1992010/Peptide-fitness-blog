@@ -32,14 +32,9 @@ if (!product) {
       <div class="tool-panel" style="margin-top: 2rem;">
         <h2 style="font-size: 1.4rem;">Request an order</h2>
         <p style="color: var(--mute);">
-          Checkout wiring (Stripe) comes next. For now, send a request — we’ll confirm stock and payment.
+          Stripe checkout comes next. For now this opens an email draft with your order details.
         </p>
-        <form name="shop-order" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-          <input type="hidden" name="form-name" value="shop-order" />
-          <input type="hidden" name="product" value={product.slug} />
-          <p style="display: none;">
-            <label>Don’t fill this out: <input name="bot-field" /></label>
-          </p>
+        <form id="shop-order" data-product={product.name} data-sku={product.sku} data-price={product.price}>
           <div class="tool-grid" style="margin-top: 1rem;">
             <div class="field">
               <label for="name">Name</label>
@@ -58,7 +53,7 @@ if (!product) {
               <input id="notes" name="notes" placeholder="Shipping preference, questions…" />
             </div>
           </div>
-          <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Send order request</button>
+          <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Email order request</button>
         </form>
       </div>
 
@@ -70,3 +65,30 @@ if (!product) {
   </section>
   <Footer slot="footer" />
 </BaseLayout>
+
+<script>
+  const form = document.getElementById('shop-order');
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const product = form.dataset.product;
+    const sku = form.dataset.sku;
+    const price = form.dataset.price;
+    const name = String(data.get('name') || '');
+    const email = String(data.get('email') || '');
+    const qty = String(data.get('qty') || '1');
+    const notes = String(data.get('notes') || '');
+    const subject = encodeURIComponent(`Amino Brief order: ${product} × ${qty}`);
+    const body = encodeURIComponent(
+      [
+        `Product: ${product} (${sku})`,
+        `Price: $${price}`,
+        `Qty: ${qty}`,
+        `Name: ${name}`,
+        `Email: ${email}`,
+        `Notes: ${notes}`,
+      ].join('\n'),
+    );
+    window.location.href = `mailto:orders@aminobrief.com?subject=${subject}&body=${body}`;
+  });
+</script>
