@@ -15,9 +15,60 @@ export async function getStaticPaths() {
 
 const { guide } = Astro.props;
 const { Content } = await render(guide);
+const updated = guide.data.updatedDate ?? guide.data.pubDate;
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: guide.data.title,
+  description: guide.data.description,
+  datePublished: guide.data.pubDate.toISOString(),
+  dateModified: updated.toISOString(),
+  author: {
+    '@type': 'Organization',
+    name: 'Amino Brief Editorial',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Amino Brief',
+    logo: {
+      '@type': 'ImageObject',
+      url: new URL('/logo.svg', Astro.site).toString(),
+    },
+  },
+  mainEntityOfPage: new URL(`/guides/${guide.id}`, Astro.site).toString(),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: `Is this ${guide.data.title} article medical advice?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. Amino Brief publishes educational research-literacy content only. It is not medical advice, a diagnosis, or a treatment plan. Speak with a qualified clinician about health decisions.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What evidence grade does Amino Brief use?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `This guide is tagged ${guide.data.evidence}. Amino Brief separates FDA-approved context, human evidence, mixed evidence, animal/preclinical work, anecdotal claims, and literacy how-tos so readers do not confuse gym lore with clinical proof.`,
+      },
+    },
+  ],
+};
 ---
 
-<BaseLayout title={guide.data.title} description={guide.data.description} ogType="article">
+<BaseLayout
+  title={guide.data.title}
+  description={guide.data.description}
+  ogType="article"
+  jsonLd={[articleSchema, faqSchema]}
+>
   <Header slot="header" />
   <article class="section">
     <div class="container">
@@ -27,17 +78,28 @@ const { Content } = await render(guide);
         <EvidenceBadge level={guide.data.evidence} />
         <span>
           Updated {
-            (guide.data.updatedDate ?? guide.data.pubDate).toLocaleDateString('en-US', {
+            updated.toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
               day: 'numeric',
             })
           }
         </span>
+        <span>By Amino Brief Editorial</span>
       </div>
       <p class="lede" style="max-width: 42ch;">{guide.data.description}</p>
       <div class="prose" style="margin-top: 2rem;">
         <Content />
+        <h2>FAQ</h2>
+        <h3>Is this medical advice?</h3>
+        <p>
+          No. Educational research literacy only. Not a prescription or protocol for human use.
+        </p>
+        <h3>How should I read the evidence badge?</h3>
+        <p>
+          See our <a href="/evidence">evidence grades</a>. Animal or anecdotal tags mean you should not mentally
+          upgrade the claim into proven human outcomes.
+        </p>
       </div>
       <p class="disclaimer" style="margin-top: 2.5rem; max-width: var(--read);">
         Educational content only. Amino Brief does not provide medical advice, dosing protocols for human use,

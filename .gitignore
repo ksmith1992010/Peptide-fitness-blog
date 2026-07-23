@@ -11,6 +11,10 @@ dist/
 .dev.vars
 .cfstate
 
+# Agent skill installs (local)
+.agents/
+skills-lock.json
+
 # dependencies
 node_modules/
 

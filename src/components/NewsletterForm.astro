@@ -1,0 +1,64 @@
+---
+---
+
+<form class="newsletter tool-panel" data-newsletter-form>
+  <h2 style="font-size: 1.35rem; margin-bottom: 0.35rem;">Amino Brief newsletter</h2>
+  <p style="color: var(--mute); margin: 0 0 1rem;">
+    Breaking research reads, tool updates, and desk drafts worth knowing — no spam stacks.
+  </p>
+  <div class="tool-grid">
+    <div class="field">
+      <label for="nl-email">Email</label>
+      <input id="nl-email" name="email" type="email" required placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label for="nl-name">Name (optional)</label>
+      <input id="nl-name" name="name" type="text" placeholder="What should we call you?" />
+    </div>
+  </div>
+  <p style="display: none;">
+    <label>Company <input name="company" tabindex="-1" autocomplete="off" /></label>
+  </p>
+  <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Subscribe</button>
+  <p class="nl-status" data-nl-status role="status" aria-live="polite"></p>
+  <p class="disclaimer" style="margin-top: 0.85rem; margin-bottom: 0;">
+    Educational emails only. Unsubscribe anytime. We don’t sell your address.
+  </p>
+</form>
+
+<script>
+  const form = document.querySelector('[data-newsletter-form]');
+  const status = form?.querySelector('[data-nl-status]');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status) return;
+    status.textContent = 'Subscribing…';
+    const data = new FormData(form);
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.get('email'),
+          name: data.get('name') || '',
+          company: data.get('company') || '',
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || 'Signup failed');
+      status.textContent = json.message || 'You’re on the list.';
+      form.reset();
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : 'Signup failed. Try again later.';
+    }
+  });
+</script>
+
+<style>
+  .nl-status {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    margin: 0.75rem 0 0;
+    color: var(--teal-deep);
+  }
+</style>

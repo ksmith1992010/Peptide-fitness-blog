@@ -7,19 +7,32 @@ import { products } from '../../data/products';
 
 <BaseLayout
   title="Shop"
-  description="Amino Brief accessories: bacteriostatic water, U-100 syringes, and vial carry cases. No peptides sold here."
+  description="Amino Brief accessories with MOQ and reseller pricing: bac water, syringes, cases, kits. No peptides sold."
 >
   <Header slot="header" />
   <section class="section">
     <div class="container">
       <p class="eyebrow">Shop</p>
-      <h1>Accessories only</h1>
-      <p class="lede">Bac water, syringes, cases. We do not sell peptides on Amino Brief.</p>
+      <h1>Accessories + reseller MOQs</h1>
+      <p class="lede">
+        Bac water, syringes, cases, kits. Peptides are not sold here. MOQ and reseller breaks shown on each SKU.
+      </p>
 
-      <div class="product-grid" style="margin-top: 2.5rem;">
+      <div class="pill-filters" data-shop-filters>
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="reseller" aria-pressed="false">Reseller / wholesale</button>
+        <button type="button" data-filter="consumables" aria-pressed="false">Consumables</button>
+        <button type="button" data-filter="bundles" aria-pressed="false">Kits</button>
+      </div>
+
+      <div class="product-grid" style="margin-top: 1.5rem;" data-shop-grid>
         {
           products.map((p) => (
-            <article class="product">
+            <article
+              class="product"
+              data-category={p.category}
+              data-reseller={p.forResellers ? '1' : '0'}
+            >
               <h3>
                 <a href={`/shop/${p.slug}`} style="text-decoration: none; color: inherit;">
                   {p.name}
@@ -27,7 +40,14 @@ import { products } from '../../data/products';
               </h3>
               <p style="color: var(--mute); margin: 0;">{p.blurb}</p>
               <p class="price">${p.price}</p>
-              <a class="btn btn-primary" href={`/shop/${p.slug}`}>View product</a>
+              <p style="font-family: var(--font-ui); font-size: 0.85rem; color: var(--mute); margin: 0 0 0.75rem;">
+                MOQ {p.moq}
+                {p.resellerPrice ? ` · Reseller ~$${p.resellerPrice}` : ''}
+                {p.wholesalePrice ? ` · Wholesale ~$${p.wholesalePrice}` : ''}
+              </p>
+              <a class="btn btn-primary" href={`/shop/${p.slug}`}>
+                View MOQ / order
+              </a>
             </article>
           ))
         }
@@ -36,3 +56,23 @@ import { products } from '../../data/products';
   </section>
   <Footer slot="footer" />
 </BaseLayout>
+
+<script>
+  const toolbar = document.querySelector('[data-shop-filters]');
+  const grid = document.querySelector('[data-shop-grid]');
+  toolbar?.addEventListener('click', (event) => {
+    const btn = event.target.closest('button[data-filter]');
+    if (!btn || !grid) return;
+    const filter = btn.dataset.filter;
+    toolbar.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+    grid.querySelectorAll('.product').forEach((item) => {
+      const el = item;
+      const cat = el.dataset.category;
+      const reseller = el.dataset.reseller === '1';
+      let show = true;
+      if (filter === 'reseller') show = reseller;
+      else if (filter !== 'all') show = cat === filter;
+      el.hidden = !show;
+    });
+  });
+</script>

@@ -2,34 +2,36 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
+import ToolDisclaimer from '../../components/ToolDisclaimer.astro';
 
 const tools = [
   {
     href: '/tools/reconstitution',
     title: 'Reconstitution calculator',
-    body: 'Vial mg + bac water mL → concentration, draw volume, syringe units.',
+    body: 'Peptide dropdown + duration context + vial math → concentration and syringe units.',
   },
   {
     href: '/tools/syringe-units',
     title: 'Syringe units converter',
-    body: 'Turn a target mcg amount into U-100 / U-40 marks once you know concentration.',
+    body: 'Known concentration → U-100 / U-40 marks with research-context notes.',
   },
   {
     href: '/tools/vial-math',
     title: 'Vial planner',
-    body: 'How many theoretical draws are in a vial at a given amount.',
+    body: 'Theoretical draws per vial with length-of-use cautions.',
   },
 ];
 ---
 
-<BaseLayout title="Tools" description="Peptide reconstitution and syringe unit calculators — educational math tools.">
+<BaseLayout title="Tools" description="Peptide reconstitution and syringe tools with compound dropdowns and educational disclaimers.">
   <Header slot="header" />
   <section class="section">
     <div class="container">
       <p class="eyebrow">Tools</p>
-      <h1>Do the math. Don’t outsource your brain.</h1>
-      <p class="lede">Unit conversion for research reconstitution workflows. Not a prescription pad.</p>
-      <ul class="link-list" style="margin-top: 2.5rem;">
+      <h1>Do the math. Read the caveats.</h1>
+      <p class="lede">Every tool includes a peptide selector, duration context, and a not-medical-advice warning.</p>
+      <ToolDisclaimer />
+      <ul class="link-list" style="margin-top: 2rem;">
         {
           tools.map((t) => (
             <li>

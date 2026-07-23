@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import GuideList from '../components/GuideList.astro';
+import NewsletterForm from '../components/NewsletterForm.astro';
 import { getCollection } from 'astro:content';
 
 const featured = (await getCollection('guides'))
@@ -52,7 +53,7 @@ const featured = (await getCollection('guides'))
       <div>
         <h2>Tools that do the math</h2>
         <p class="lede" style="max-width: 34ch;">
-          Reconstitution, syringe units, vial planner. Educational conversion only — you bring the protocol judgment.
+          Peptide dropdown, duration context, reconstitution math. Educational only — not a protocol pad.
         </p>
         <div class="btn-row">
           <a class="btn btn-primary" href="/tools/reconstitution">Reconstitution calculator</a>
@@ -62,11 +63,21 @@ const featured = (await getCollection('guides'))
       <div>
         <h2>Accessories, not peptides</h2>
         <p class="lede" style="max-width: 34ch;">
-          Bac water, U-100 syringes, carry cases. We sell the kit — not the compounds.
+          Bac water, syringes, cases, reseller MOQs. We sell the kit — not the compounds.
         </p>
         <div class="btn-row">
           <a class="btn btn-primary" href="/shop">Shop accessories</a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="container" style="max-width: 720px;">
+      <h2>Get the brief</h2>
+      <p class="lede">Newsletter for research moves worth reading.</p>
+      <div style="margin-top: 1rem;">
+        <NewsletterForm />
       </div>
     </div>
   </section>
