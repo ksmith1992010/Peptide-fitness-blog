@@ -45,10 +45,10 @@ export const outreachTargets: OutreachTarget[] = [
   {
     name: 'Sourcing / quality reviewers',
     type: 'Industry literacy',
-    angle: 'Vendor evaluation checklist — criteria before catalogs',
+    angle: 'Vendor evaluation checklist — criteria before catalogs (soft Peperchini example now live)',
     assetLabel: 'Evaluate a source',
     assetPath: '/guides/how-to-evaluate-a-peptide-source',
-    status: 'drafting',
+    status: 'pitched',
   },
   {
     name: 'Metabolic / obesity research explainers',

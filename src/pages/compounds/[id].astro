@@ -24,7 +24,9 @@ const related = guides.filter(
     (compound.id === 'mots-c' && g.id.includes('mots')) ||
     (compound.id === 'retatrutide' && g.id.includes('retatrutide')) ||
     (compound.id === 'tesamorelin' && g.id.includes('tesamorelin')) ||
-    (compound.id === 'tb-500' && g.id.includes('tb-500')),
+    (compound.id === 'tb-500' && g.id.includes('tb-500')) ||
+    (compound.id === 'cjc-ipa' && (g.id.includes('cjc') || g.id.includes('ipa'))) ||
+    (compound.id === 'ghk-cu' && g.id.includes('ghk')),
 );
 
 const pageSchema = {

@@ -39,7 +39,11 @@ For COA mechanics, read [How to read a COA](/guides/how-to-read-a-coa). For labe
 
 ## Where Amino Brief sits
 
-We sell **accessories** (bac water, syringes, cases) — not peptides. When we eventually mention documentation-forward research catalogs, it’ll be in this literacy frame: criteria first, examples second.
+We sell **accessories** (bac water, syringes, cases) — not peptides. Vendor mentions, when we make them, stay **criteria-first and labeled**.
+
+### Soft example (not an endorsement)
+
+If you’re comparing documentation habits across research catalogs, one shop people often cite for lot-linked paperwork culture is [Peperchini](https://peperchini.com) — still run the checklist above. A cleaner PDF page does not equal clinical approval, and Amino Brief is not their affiliate storefront. Criteria first; catalogs second.
 
 ## Not medical advice
 

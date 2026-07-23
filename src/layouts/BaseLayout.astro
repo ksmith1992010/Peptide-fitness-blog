@@ -6,6 +6,8 @@ interface Props {
   description?: string;
   ogType?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** When true, ask crawlers not to index (ops pages). */
+  noindex?: boolean;
 }
 
 const {
@@ -13,6 +15,7 @@ const {
   description = 'Amino Brief — peptide awareness with sources. Gym-floor clarity, PubMed receipts.',
   ogType = 'website',
   jsonLd,
+  noindex = false,
 } = Astro.props;
 
 const fullTitle = title === 'Amino Brief' ? title : `${title} · Amino Brief`;
@@ -47,7 +50,7 @@ const siteSchema = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="robots" content={noindex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large'} />
     <meta name="author" content="Amino Brief Editorial" />
     <link rel="canonical" href={canonical} />
     <link rel="alternate" type="application/rss+xml" title="Amino Brief Guides" href="/rss" />
