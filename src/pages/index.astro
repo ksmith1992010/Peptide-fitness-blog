@@ -5,11 +5,16 @@ import Footer from '../components/Footer.astro';
 import GuideList from '../components/GuideList.astro';
 import NewsletterForm from '../components/NewsletterForm.astro';
 import { getCollection } from 'astro:content';
+import { products } from '../data/products';
 
 const featured = (await getCollection('guides'))
   .filter((g) => g.data.featured)
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 4);
+
+const shopSpotlight = products.filter((p) =>
+  ['bac-water', 'insulin-syringes', 'vial-carry-case'].includes(p.slug),
+);
 ---
 
 <BaseLayout
@@ -49,25 +54,47 @@ const featured = (await getCollection('guides'))
   </section>
 
   <section class="section" style="padding-top: 0;">
-    <div class="container split">
-      <div>
+    <div class="container">
+      <div class="section-head">
         <h2>Compound hubs</h2>
-        <p class="lede" style="max-width: 34ch;">
-          Name-by-name research literacy — evidence notes, duration context, tool links. Not protocols.
-        </p>
-        <div class="btn-row">
-          <a class="btn btn-primary" href="/compounds">Browse compounds</a>
-          <a class="btn btn-secondary" href="/tools">Open the tools</a>
-        </div>
+        <p>Name-by-name research literacy — evidence notes, duration context, tool links. Not protocols.</p>
       </div>
-      <div>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="/compounds">Browse compounds</a>
+        <a class="btn btn-secondary" href="/tools">Open the tools</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-head">
         <h2>Accessories, not peptides</h2>
-        <p class="lede" style="max-width: 34ch;">
-          Bac water, syringes, cases, reseller MOQs. We sell the kit — not the compounds.
-        </p>
-        <div class="btn-row">
-          <a class="btn btn-primary" href="/shop">Shop accessories</a>
-        </div>
+        <p>Bac water, syringes, cases, reseller MOQs. We sell the kit — not the compounds.</p>
+      </div>
+      <div class="product-grid home-shop">
+        {
+          shopSpotlight.map((p) => (
+            <article class="product">
+              <a href={`/shop/${p.slug}`} class="product-media">
+                <img src={p.image} alt={p.imageAlt} width="900" height="900" loading="lazy" />
+              </a>
+              <h3>
+                <a href={`/shop/${p.slug}`} style="text-decoration: none; color: inherit;">
+                  {p.name}
+                </a>
+              </h3>
+              <p style="color: var(--mute); margin: 0;">{p.blurb}</p>
+              <p class="price">${p.price}</p>
+              <a class="btn btn-secondary" href={`/shop/${p.slug}`}>
+                View
+              </a>
+            </article>
+          ))
+        }
+      </div>
+      <div class="btn-row" style="margin-top: 1.5rem;">
+        <a class="btn btn-primary" href="/shop">Shop all accessories</a>
       </div>
     </div>
   </section>
@@ -126,15 +153,7 @@ const featured = (await getCollection('guides'))
     }
   }
 
-  .split {
-    display: grid;
-    gap: 2.5rem;
-  }
-
-  @media (min-width: 800px) {
-    .split {
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-    }
+  .home-shop {
+    margin-top: 1.5rem;
   }
 </style>

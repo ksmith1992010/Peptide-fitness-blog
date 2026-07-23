@@ -32,7 +32,7 @@ const productSchema = {
 };
 ---
 
-<BaseLayout title={product.name} description={product.blurb} jsonLd={productSchema}>
+<BaseLayout title={product.name} description={product.blurb} ogImage={product.image} jsonLd={productSchema}>
   <Header slot="header" />
   <section class="section">
     <div class="container" style="max-width: 720px;">
