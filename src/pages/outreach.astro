@@ -2,12 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { outreachTargets } from '../data/outreach';
+import { outreachTargets, prospectingOperators } from '../data/outreach';
+import { linkableAssets } from '../data/keywords';
 ---
 
 <BaseLayout
   title="Outreach tracker"
-  description="Backlink and citation outreach targets for Amino Brief — criteria-first, no PBN junk."
+  description="Backlink and citation outreach for Amino Brief — resource pages, journalism, tools lists. No PBN junk."
   noindex={true}
 >
   <Header slot="header" />
@@ -15,18 +16,45 @@ import { outreachTargets } from '../data/outreach';
     <div class="container">
       <p class="eyebrow">Growth ops</p>
       <h1>Backlink outreach tracker</h1>
-      <p class="lede" style="max-width: 46ch;">
-        Pitch original literacy pieces. Copy the ready email, personalize the first line, track status. No paid link schemes.
+      <p class="lede" style="max-width: 48ch;">
+        Priority: .edu/LibGuides → COA · journalism → RUO/GLP-1 · creators → recon calculator. Copy pitch, personalize
+        the first line, log status.
       </p>
       <p style="font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
-        Strategy: <a href="/growth">/growth</a> · Full plan in repo <code>docs/GROWTH-PLAN.md</code>
+        Playbook: <code>docs/KEYWORD-BACKLINK-PLAYBOOK.md</code> · Keywords: <code>src/data/keywords.ts</code>
       </p>
+
+      <div class="tool-panel" style="margin-top: 1.5rem; max-width: 720px;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Prospecting operators</h2>
+        <pre
+          data-operators
+          style="white-space: pre-wrap; font-family: var(--font-ui); font-size: 0.82rem; margin: 0 0 0.75rem; max-height: 10rem; overflow: auto;"
+        >{prospectingOperators.join('\n')}</pre>
+        <button class="btn btn-secondary" type="button" data-copy-operators>Copy operators</button>
+        <span data-operators-status style="font-family: var(--font-ui); font-size: 0.85rem; margin-left: 0.75rem;"></span>
+      </div>
+
+      <div class="tool-panel" style="margin-top: 1rem; max-width: 720px;">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Linkable assets</h2>
+        <ul style="margin: 0; padding-left: 1.1rem; font-family: var(--font-ui); font-size: 0.9rem;">
+          {
+            linkableAssets.map((a) => (
+              <li>
+                <a href={a.path}>{a.primary}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
 
       <div style="margin-top: 2rem; display: grid; gap: 1.25rem;">
         {
           outreachTargets.map((t, i) => (
             <article class="tool-panel" style="max-width: 720px;">
-              <div class="meta" style="text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-ui); font-size: 0.8rem; color: var(--mute);">
+              <div
+                class="meta"
+                style="text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-ui); font-size: 0.8rem; color: var(--mute);"
+              >
                 {t.type} · <span class="badge">{t.status}</span>
               </div>
               <h2 style="font-size: 1.25rem; margin: 0.4rem 0;">{t.name}</h2>
@@ -36,6 +64,13 @@ import { outreachTargets } from '../data/outreach';
                 <br />
                 Next: {t.nextAction}
               </p>
+              {
+                t.operators && t.operators.length > 0 && (
+                  <p style="font-family: var(--font-ui); font-size: 0.8rem; color: var(--mute); margin: 0 0 0.75rem;">
+                    Operators: {t.operators.join(' · ')}
+                  </p>
+                )
+              }
               <p style="font-family: var(--font-ui); font-size: 0.85rem; margin: 0 0 0.35rem;">
                 <strong>Subject:</strong> {t.pitchSubject}
               </p>
@@ -70,5 +105,16 @@ import { outreachTargets } from '../data/outreach';
         if (status) status.textContent = 'Copy failed — select manually.';
       }
     });
+  });
+
+  document.querySelector('[data-copy-operators]')?.addEventListener('click', async () => {
+    const pre = document.querySelector('[data-operators]');
+    const status = document.querySelector('[data-operators-status]');
+    try {
+      await navigator.clipboard.writeText(pre?.textContent || '');
+      if (status) status.textContent = 'Copied.';
+    } catch {
+      if (status) status.textContent = 'Copy failed.';
+    }
   });
 </script>

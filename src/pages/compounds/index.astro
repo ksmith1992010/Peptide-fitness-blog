@@ -9,15 +9,17 @@ const compounds = peptides.filter((p) => p.id !== 'generic');
 ---
 
 <BaseLayout
-  title="Compounds"
-  description="Research-framed compound hubs — evidence notes, tools, and related Amino Brief guides."
+  title="Peptide compound research hubs"
+  description="Peptide compound research hubs — BPC-157 evidence, retatrutide, tesamorelin, and more with honest evidence grades. Literacy, not protocols."
 >
   <Header slot="header" />
   <section class="section">
     <div class="container">
       <p class="eyebrow">Compound clusters</p>
-      <h1>Know the name before the hype</h1>
-      <p class="lede">Each hub links evidence context, duration notes, and tools. Not protocols.</p>
+      <h1>Peptide research hubs</h1>
+      <p class="lede">
+        Name-by-name evidence context for queries like “BPC-157 evidence” — duration notes and tools, never protocols.
+      </p>
       <ul class="link-list" style="margin-top: 2rem;">
         {
           compounds.map((c) => (

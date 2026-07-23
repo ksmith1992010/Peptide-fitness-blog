@@ -34,7 +34,7 @@ export const products: Product[] = [
     sku: 'AB-BAC-30',
     category: 'consumables',
     forResellers: true,
-    blurb: '30 mL bacteriostatic water for reconstitution workflows.',
+    blurb: '30 mL bacteriostatic water for peptide reconstitution workflows — accessories only, no compounds.',
     details: [
       '30 mL vial',
       '0.9% benzyl alcohol preservative',

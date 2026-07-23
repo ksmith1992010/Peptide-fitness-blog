@@ -64,7 +64,7 @@ export const peptides: PeptideProfile[] = [
     referenceAmountMcg: 250,
     evidence: 'animal',
     summary:
-      'Widely discussed “recovery” peptide online. Literature is heavily preclinical/animal; human RCTs for popular claims remain thin.',
+      'BPC-157 evidence is heavily preclinical/animal for popular recovery claims; high-quality human RCTs remain thin. Hub = literacy, not a protocol.',
     durationNotes: {
       acute: 'Short research windows dominate animal work. Treat social “instant heal” stories as anecdotes.',
       short: 'Forum “cycles” are not clinical protocols. Watch for quality/lot consistency across reorders.',
