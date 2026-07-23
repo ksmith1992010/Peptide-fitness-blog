@@ -49,7 +49,9 @@ Optional: `PUBLIC_SITE_URL=https://aminobrief.com` for Stripe success/cancel URL
 ## 3. Workers AI
 
 `wrangler.jsonc` already declares `"ai": { "binding": "AI" }`.  
-Desk uses `POST /api/news/drafts/:id/rewrite` (staff Bearer token) with `@cf/meta/llama-3.1-8b-instruct`.
+Desk rewrite prefers **`xai/grok-4.5`**, then falls back to `@cf/meta/llama-3.1-8b-instruct`.  
+Endpoint: `POST /api/news/drafts/:id/rewrite` (staff Bearer token).  
+Requires Cloudflare AI / Unified Billing for Grok; Llama works on Workers AI alone.
 
 ## 4. Custom domain
 
