@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const faq = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Who writes Amino Brief?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Amino Brief Editorial publishes educational peptide-literacy content. Pieces are research-framed, evidence-tagged, and not medical advice.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is Amino Brief a medical publisher?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. Amino Brief is an educational awareness site. We do not diagnose, treat, or prescribe. Readers should consult qualified clinicians for health decisions.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Editorial standards"
+  description="Who publishes Amino Brief, how we grade evidence, and how we handle corrections — YMYL-aware E-E-A-T."
+  jsonLd={faq}
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">E-E-A-T</p>
+      <h1>Editorial standards</h1>
+      <p class="lede" style="max-width: 42ch;">
+        Peptide content sits in a YMYL-adjacent neighborhood. We write like adults: sources, grades, corrections.
+      </p>
+
+      <h2>Publisher</h2>
+      <p>
+        <strong>Amino Brief Editorial</strong> — independent education brand. We are not a clinic, pharmacy, or
+        research-chemical manufacturer.
+      </p>
+
+      <h2>What we optimize for</h2>
+      <ul>
+        <li>Evidence grades on every guide</li>
+        <li>Primary-source pointers (PubMed, ClinicalTrials.gov, FDA)</li>
+        <li>Clear “not medical advice” boundaries on tools and articles</li>
+        <li>Update dates when material changes</li>
+      </ul>
+
+      <h2>Review posture</h2>
+      <p>
+        Desk drafts from the newsroom cron are <em>not</em> published guides until a human edits them. Auto-pulled RSS
+        is a lead list, not journalism.
+      </p>
+
+      <h2>Corrections</h2>
+      <p>
+        Spot an error? Email <a href="mailto:editorial@aminobrief.com">editorial@aminobrief.com</a>. We correct in-place
+        and bump the updated date.
+      </p>
+
+      <h2>Conflicts</h2>
+      <p>
+        Amino Brief may sell lab accessories. We do not sell peptides on this domain. Any future vendor mentions will be
+        labeled and criteria-first.
+      </p>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

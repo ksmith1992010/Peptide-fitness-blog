@@ -12,6 +12,12 @@ export interface Env {
   SUBSCRIBERS?: KVNamespace;
   NEWS_DRAFTS?: KVNamespace;
   NEWS_TRIGGER_SECRET?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_PRICE_BAC_WATER?: string;
+  STRIPE_PRICE_SYRINGES?: string;
+  STRIPE_PRICE_CASE?: string;
+  PUBLIC_SITE_URL?: string;
 }
 
 interface NewsItem {
@@ -52,6 +58,23 @@ function isEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+async function verifyTurnstile(token: string | undefined, env: Env, ip: string | null): Promise<boolean> {
+  // If Turnstile is not configured, allow (local / early deploy).
+  if (!env.TURNSTILE_SECRET_KEY) return true;
+  if (!token) return false;
+  const body = new URLSearchParams();
+  body.set('secret', env.TURNSTILE_SECRET_KEY);
+  body.set('response', token);
+  if (ip) body.set('remoteip', ip);
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    body,
+  });
+  if (!res.ok) return false;
+  const data = (await res.json()) as { success?: boolean };
+  return Boolean(data.success);
+}
+
 async function handleNewsletter(request: Request, env: Env): Promise<Response> {
   if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
   if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, request);
@@ -60,11 +83,16 @@ async function handleNewsletter(request: Request, env: Env): Promise<Response> {
     email?: string;
     name?: string;
     company?: string;
+    turnstileToken?: string;
   } | null;
 
   if (!body?.email || !isEmail(body.email)) return json({ error: 'Valid email required' }, 400, request);
   // honeypot
   if (body.company) return json({ message: 'Thanks — you’re on the Amino Brief list (or already were).' }, 200, request);
+
+  const ip = request.headers.get('CF-Connecting-IP');
+  const human = await verifyTurnstile(body.turnstileToken, env, ip);
+  if (!human) return json({ error: 'Turnstile verification failed' }, 403, request);
 
   if (!env.SUBSCRIBERS) {
     return json(
@@ -256,10 +284,62 @@ async function listDrafts(env: Env): Promise<NewsItem[]> {
   return drafts.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 50);
 }
 
+async function handleStripeCheckout(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, request);
+  if (!env.STRIPE_SECRET_KEY) {
+    return json(
+      {
+        error: 'Stripe is not configured yet. Set STRIPE_SECRET_KEY (and price IDs) as Worker secrets.',
+      },
+      503,
+      request,
+    );
+  }
+
+  const body = (await request.json().catch(() => null)) as {
+    sku?: string;
+    quantity?: number;
+  } | null;
+
+  const sku = body?.sku || '';
+  const quantity = Math.max(1, Math.min(100, Number(body?.quantity || 1)));
+  const priceMap: Record<string, string | undefined> = {
+    'bac-water': env.STRIPE_PRICE_BAC_WATER,
+    'insulin-syringes': env.STRIPE_PRICE_SYRINGES,
+    'vial-carry-case': env.STRIPE_PRICE_CASE,
+  };
+  const price = priceMap[sku];
+  if (!price) return json({ error: 'Unknown or unpriced SKU for Stripe checkout' }, 400, request);
+
+  const site = env.PUBLIC_SITE_URL || 'https://aminobrief.com';
+  const params = new URLSearchParams();
+  params.set('mode', 'payment');
+  params.set('success_url', `${site}/shop?checkout=success`);
+  params.set('cancel_url', `${site}/shop/${sku}?checkout=cancel`);
+  params.set('line_items[0][price]', price);
+  params.set('line_items[0][quantity]', String(quantity));
+
+  const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params,
+  });
+  const data = (await res.json()) as { id?: string; url?: string; error?: { message?: string } };
+  if (!res.ok || !data.url) {
+    return json({ error: data.error?.message || 'Stripe session failed' }, 502, request);
+  }
+  return json({ url: data.url, id: data.id }, 200, request);
+}
+
 async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
 
   if (url.pathname === '/api/newsletter') return handleNewsletter(request, env);
+  if (url.pathname === '/api/checkout') return handleStripeCheckout(request, env);
 
   if (url.pathname === '/api/news/drafts' && request.method === 'GET') {
     if (!env.NEWS_DRAFTS) {

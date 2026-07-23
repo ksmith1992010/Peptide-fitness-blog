@@ -1,4 +1,5 @@
 ---
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 ---
 
 <form class="newsletter tool-panel" data-newsletter-form>
@@ -19,12 +20,24 @@
   <p style="display: none;">
     <label>Company <input name="company" tabindex="-1" autocomplete="off" /></label>
   </p>
+  {
+    turnstileSiteKey && (
+      <div
+        class="cf-turnstile"
+        data-sitekey={turnstileSiteKey}
+        data-theme="light"
+        style="margin-top: 1rem;"
+      />
+    )
+  }
   <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Subscribe</button>
   <p class="nl-status" data-nl-status role="status" aria-live="polite"></p>
   <p class="disclaimer" style="margin-top: 0.85rem; margin-bottom: 0;">
     Educational emails only. Unsubscribe anytime. We don’t sell your address.
   </p>
 </form>
+
+{turnstileSiteKey && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
 
 <script>
   const form = document.querySelector('[data-newsletter-form]');
@@ -34,6 +47,7 @@
     if (!status) return;
     status.textContent = 'Subscribing…';
     const data = new FormData(form);
+    const turnstile = data.get('cf-turnstile-response') || '';
     try {
       const res = await fetch('/api/newsletter', {
         method: 'POST',
@@ -42,6 +56,7 @@
           email: data.get('email'),
           name: data.get('name') || '',
           company: data.get('company') || '',
+          turnstileToken: turnstile,
         }),
       });
       const json = await res.json().catch(() => ({}));

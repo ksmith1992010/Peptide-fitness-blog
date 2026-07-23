@@ -8,11 +8,16 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 - https://aminobrief.com/guides/approved-vs-research-compounds
 - https://aminobrief.com/guides/how-to-read-a-coa
 - https://aminobrief.com/guides/why-ruo-labels-exist
+- https://aminobrief.com/guides/how-to-evaluate-a-peptide-source
 - https://aminobrief.com/guides/evidence-tiers-cell-to-human
 - https://aminobrief.com/guides/bpc-157-evidence-snapshot
 - https://aminobrief.com/guides/reconstitution-math-without-the-guru
 - https://aminobrief.com/guides/mots-c-snapshot
 - https://aminobrief.com/guides/common-peptide-myths
+
+## Compound hubs
+- https://aminobrief.com/compounds
+- Individual hubs under /compounds/{id} (e.g. bpc-157, mots-c) with evidence + duration context + tool links
 
 ## Tools
 - https://aminobrief.com/tools/reconstitution
@@ -22,6 +27,12 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 ## Commerce (accessories only)
 - https://aminobrief.com/shop
 - Products include bacteriostatic water, U-100 syringes, carry cases, prep pads, empty vials, gloves, labels, recon kits, reseller packs — with MOQ / reseller / wholesale tiers.
+- Stripe Checkout available via POST /api/checkout when Worker secrets are set (core SKUs)
+
+## Trust / ops
+- https://aminobrief.com/editorial
+- https://aminobrief.com/outreach
+- https://aminobrief.com/desk
 
 ## Policies
 - No peptide compounds sold on this domain

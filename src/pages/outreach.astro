@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { outreachTargets } from '../data/outreach';
+---
+
+<BaseLayout
+  title="Outreach tracker"
+  description="Backlink and citation outreach targets for Amino Brief — criteria-first, no PBN junk."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Growth ops</p>
+      <h1>Backlink outreach tracker</h1>
+      <p class="lede">Pitch original literacy pieces. No paid link schemes.</p>
+
+      <div style="margin-top: 2rem; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: 0.92rem;">
+          <thead>
+            <tr style="text-align: left; border-bottom: 2px solid var(--ink);">
+              <th style="padding: 0.6rem;">Target</th>
+              <th style="padding: 0.6rem;">Angle</th>
+              <th style="padding: 0.6rem;">Asset</th>
+              <th style="padding: 0.6rem;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              outreachTargets.map((t) => (
+                <tr style="border-bottom: 1px solid var(--line);">
+                  <td style="padding: 0.75rem; vertical-align: top;">
+                    <strong>{t.name}</strong>
+                    <div style="color: var(--mute);">{t.type}</div>
+                  </td>
+                  <td style="padding: 0.75rem; vertical-align: top;">{t.angle}</td>
+                  <td style="padding: 0.75rem; vertical-align: top;">
+                    <a href={t.assetPath}>{t.assetLabel}</a>
+                  </td>
+                  <td style="padding: 0.75rem; vertical-align: top;">
+                    <span class="badge">{t.status}</span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>
