@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import GuideList from '../components/GuideList.astro';
+import { getCollection } from 'astro:content';
+
+const featured = (await getCollection('guides'))
+  .filter((g) => g.data.featured)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 4);
+---
+
+<BaseLayout
+  title="Amino Brief"
+  description="Peptide awareness with sources. Gym-floor clarity, research receipts, reconstitution math tools, and lab accessories."
+>
+  <Header slot="header" />
+
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow fade-up">Amino Brief</p>
+        <h1 class="fade-up-delay">Know the peptide before you chase the hype.</h1>
+        <p class="lede fade-up-delay-2">
+          Straight talk on research peptides, evidence grades, and reconstitution math — with sources, not vibes.
+        </p>
+        <div class="btn-row fade-up-delay-2">
+          <a class="btn btn-primary" href="/learn">Start with the basics</a>
+          <a class="btn btn-secondary" href="/tools">Open the tools</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-plane" aria-hidden="true"></div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Featured briefs</h2>
+        <p>Read the receipts first. Then decide what deserves your attention.</p>
+      </div>
+      <GuideList guides={featured} />
+      <div class="btn-row">
+        <a class="btn btn-secondary" href="/guides">Browse all guides</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="container split">
+      <div>
+        <h2>Tools that do the math</h2>
+        <p class="lede" style="max-width: 34ch;">
+          Reconstitution, syringe units, vial planner. Educational conversion only — you bring the protocol judgment.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/tools/reconstitution">Reconstitution calculator</a>
+          <a class="btn btn-secondary" href="/tools">All tools</a>
+        </div>
+      </div>
+      <div>
+        <h2>Accessories, not peptides</h2>
+        <p class="lede" style="max-width: 34ch;">
+          Bac water, U-100 syringes, carry cases. We sell the kit — not the compounds.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/shop">Shop accessories</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer slot="footer" />
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: min(92vh, 760px);
+    display: grid;
+    align-items: end;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero-plane {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(120deg, rgba(243, 245, 242, 0.92) 0%, rgba(243, 245, 242, 0.55) 42%, rgba(243, 245, 242, 0.2) 70%),
+      url('/hero-texture.svg') center/cover no-repeat,
+      radial-gradient(circle at 70% 40%, #2a6b6b 0%, #1a1a1a 55%, #0f1413 100%);
+    z-index: 0;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    padding: 5.5rem 0 4rem;
+  }
+
+  .hero-copy {
+    max-width: 18ch;
+  }
+
+  .hero-copy .lede {
+    max-width: 28ch;
+    color: var(--ink-soft);
+  }
+
+  @media (min-width: 800px) {
+    .hero-copy {
+      max-width: 14ch;
+    }
+  }
+
+  .split {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 800px) {
+    .split {
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+  }
+</style>

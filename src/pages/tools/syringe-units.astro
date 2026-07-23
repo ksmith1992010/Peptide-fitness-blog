@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Syringe units converter"
+  description="Convert a target mcg amount into U-100 or U-40 syringe units from a known concentration."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container" style="max-width: 760px;">
+      <p class="eyebrow">Tools</p>
+      <h1>Syringe units converter</h1>
+      <p class="lede">Already know your concentration? Jump straight to the syringe mark.</p>
+
+      <div class="tool-panel" data-syringe-calc style="margin-top: 2rem;">
+        <div class="tool-grid">
+          <div class="field">
+            <label for="conc">Concentration (mg/mL)</label>
+            <input id="conc" name="conc" type="number" min="0.01" step="0.01" value="2.5" />
+          </div>
+          <div class="field">
+            <label for="dose">Target amount (mcg)</label>
+            <input id="dose" name="dose" type="number" min="1" step="1" value="250" />
+          </div>
+          <div class="field">
+            <label for="syr">Syringe</label>
+            <select id="syr" name="syr">
+              <option value="100" selected>U-100</option>
+              <option value="40">U-40</option>
+            </select>
+          </div>
+        </div>
+        <div class="result-box" aria-live="polite">
+          <dl>
+            <dt>Draw volume</dt>
+            <dd data-out="vol">—</dd>
+            <dt>Syringe mark</dt>
+            <dd data-out="units">—</dd>
+          </dl>
+        </div>
+        <p class="disclaimer" style="margin-top: 1rem; margin-bottom: 0;">
+          Educational unit conversion only. Not medical advice.
+        </p>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>
+
+<script>
+  function run(root) {
+    const conc = Number(root.querySelector('[name="conc"]').value);
+    const doseMcg = Number(root.querySelector('[name="dose"]').value);
+    const unitsPerMl = Number(root.querySelector('[name="syr"]').value);
+    const volEl = root.querySelector('[data-out="vol"]');
+    const unitsEl = root.querySelector('[data-out="units"]');
+
+    if (!(conc > 0) || !(doseMcg > 0)) {
+      volEl.textContent = '—';
+      unitsEl.textContent = '—';
+      return;
+    }
+
+    const doseMg = doseMcg / 1000;
+    const vol = doseMg / conc;
+    const units = vol * unitsPerMl;
+    volEl.textContent = `${Number(vol.toFixed(4))} mL`;
+    unitsEl.textContent = `${Number(units.toFixed(1))} units`;
+  }
+
+  document.querySelectorAll('[data-syringe-calc]').forEach((root) => {
+    root.querySelectorAll('input, select').forEach((el) => {
+      el.addEventListener('input', () => run(root));
+      el.addEventListener('change', () => run(root));
+    });
+    run(root);
+  });
+</script>

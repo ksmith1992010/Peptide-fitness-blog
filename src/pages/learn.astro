@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const paths = [
+  {
+    title: '1. What peptides actually are',
+    body: 'Amino acid chains, signaling, and why TikTok names are not a pharmacology course.',
+    href: '/guides/what-peptides-actually-are',
+  },
+  {
+    title: '2. Evidence grades',
+    body: 'FDA-approved medicines vs animal papers vs gym lore. Learn the difference before you argue online.',
+    href: '/evidence',
+  },
+  {
+    title: '3. Quality literacy',
+    body: 'COAs, HPLC, RUO labels — how not to get played by a PDF.',
+    href: '/guides/how-to-read-a-coa',
+  },
+  {
+    title: '4. Reconstitution math',
+    body: 'mg, mL, units. Run the numbers yourself.',
+    href: '/tools/reconstitution',
+  },
+];
+---
+
+<BaseLayout title="Learn" description="Learning paths for peptide awareness — basics, evidence, quality, and math tools.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Learning paths</p>
+      <h1>Start here. Skip the guru fluff.</h1>
+      <p class="lede">Four stops. No stack porn. Just the foundation so the rest of the internet makes more sense.</p>
+      <ul class="link-list" style="margin-top: 2.5rem;">
+        {
+          paths.map((p) => (
+            <li>
+              <a href={p.href}>
+                <h3>{p.title}</h3>
+                <p style="margin: 0.35rem 0 0; color: var(--mute);">{p.body}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

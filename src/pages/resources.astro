@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="Resources" description="External references for peptide literacy — PubMed, FDA, and quality documentation primers.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container prose">
+      <p class="eyebrow">Resources</p>
+      <h1>Where to dig deeper</h1>
+      <p>
+        We keep this list boring on purpose. Primary sources beat influencer slideshows. Vendor shout-outs stay off
+        this page until we have a real sourcing literacy series ready.
+      </p>
+      <ul>
+        <li><a href="https://pubmed.ncbi.nlm.nih.gov/" rel="noopener noreferrer">PubMed</a> — find the actual papers</li>
+        <li><a href="https://clinicaltrials.gov/" rel="noopener noreferrer">ClinicalTrials.gov</a> — see what’s been studied in humans</li>
+        <li><a href="https://www.fda.gov/" rel="noopener noreferrer">FDA</a> — approvals, safety communications, compounding context</li>
+        <li><a href="/guides/how-to-read-a-coa">Amino Brief: How to read a COA</a></li>
+        <li><a href="/evidence">Amino Brief: Evidence grades</a></li>
+      </ul>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

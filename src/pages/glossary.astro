@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getCollection, render } from 'astro:content';
+
+const terms = (await getCollection('glossary')).sort((a, b) =>
+  a.data.term.localeCompare(b.data.term),
+);
+---
+
+<BaseLayout title="Glossary" description="Peptide and lab vocabulary — COA, HPLC, RUO, lyophilized, and more.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Glossary</p>
+      <h1>Words before the jargon fights you</h1>
+      <div style="margin-top: 2rem; display: grid; gap: 1.5rem; max-width: var(--read);">
+        {
+          await Promise.all(
+            terms.map(async (entry) => {
+              const { Content } = await render(entry);
+              return (
+                <article style="border-top: 1px solid var(--line); padding-top: 1rem;">
+                  <h2 style="font-size: 1.5rem; margin-bottom: 0.35rem;">{entry.data.term}</h2>
+                  <p style="color: var(--mute); margin-bottom: 0.75rem;">{entry.data.short}</p>
+                  <div class="prose">
+                    <Content />
+                  </div>
+                </article>
+              );
+            }),
+          )
+        }
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

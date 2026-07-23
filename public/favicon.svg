@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#F4F6F5"/>
+  <g stroke="#2A6B6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- page -->
+    <path d="M22 14h16l8 8v28H22V14z"/>
+    <path d="M38 14v8h8"/>
+    <!-- peptide hex chain on left -->
+    <path d="M22 20l-5 3v6l5 3 5-3v-6l-5-3z"/>
+    <path d="M22 32l-5 3v6l5 3 5-3v-6l-5-3z"/>
+    <path d="M22 44l-5 3v6l5 3 5-3v-6l-5-3z"/>
+    <circle cx="22" cy="29" r="1.6" fill="#2A6B6B"/>
+    <circle cx="22" cy="41" r="1.6" fill="#2A6B6B"/>
+  </g>
+</svg>

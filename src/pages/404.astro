@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="Page not found" description="That page does not exist on Amino Brief.">
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <h1>404 — brief missing</h1>
+      <p class="lede">That URL isn’t in the archive.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="/">Home</a>
+        <a class="btn btn-secondary" href="/guides">Guides</a>
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

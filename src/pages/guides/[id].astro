@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import EvidenceBadge from '../../components/EvidenceBadge.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides');
+  return guides.map((guide) => ({
+    params: { id: guide.id },
+    props: { guide },
+  }));
+}
+
+const { guide } = Astro.props;
+const { Content } = await render(guide);
+---
+
+<BaseLayout title={guide.data.title} description={guide.data.description} ogType="article">
+  <Header slot="header" />
+  <article class="section">
+    <div class="container">
+      <p class="eyebrow">{guide.data.category}</p>
+      <h1 style="max-width: 14ch;">{guide.data.title}</h1>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 1rem 0 1.5rem; font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
+        <EvidenceBadge level={guide.data.evidence} />
+        <span>
+          Updated {
+            (guide.data.updatedDate ?? guide.data.pubDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })
+          }
+        </span>
+      </div>
+      <p class="lede" style="max-width: 42ch;">{guide.data.description}</p>
+      <div class="prose" style="margin-top: 2rem;">
+        <Content />
+      </div>
+      <p class="disclaimer" style="margin-top: 2.5rem; max-width: var(--read);">
+        Educational content only. Amino Brief does not provide medical advice, dosing protocols for human use,
+        diagnosis, or treatment recommendations. Talk to a qualified clinician about health decisions.
+      </p>
+    </div>
+  </article>
+  <Footer slot="footer" />
+</BaseLayout>

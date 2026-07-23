@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { products } from '../../data/products';
+---
+
+<BaseLayout
+  title="Shop"
+  description="Amino Brief accessories: bacteriostatic water, U-100 syringes, and vial carry cases. No peptides sold here."
+>
+  <Header slot="header" />
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Shop</p>
+      <h1>Accessories only</h1>
+      <p class="lede">Bac water, syringes, cases. We do not sell peptides on Amino Brief.</p>
+
+      <div class="product-grid" style="margin-top: 2.5rem;">
+        {
+          products.map((p) => (
+            <article class="product">
+              <h3>
+                <a href={`/shop/${p.slug}`} style="text-decoration: none; color: inherit;">
+                  {p.name}
+                </a>
+              </h3>
+              <p style="color: var(--mute); margin: 0;">{p.blurb}</p>
+              <p class="price">${p.price}</p>
+              <a class="btn btn-primary" href={`/shop/${p.slug}`}>View product</a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+  <Footer slot="footer" />
+</BaseLayout>

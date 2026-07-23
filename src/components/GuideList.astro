@@ -1,0 +1,42 @@
+---
+import EvidenceBadge from './EvidenceBadge.astro';
+
+interface GuideItem {
+  id: string;
+  data: {
+    title: string;
+    description: string;
+    category: string;
+    evidence: string;
+    pubDate: Date;
+  };
+}
+
+interface Props {
+  guides: GuideItem[];
+}
+
+const { guides } = Astro.props;
+---
+
+<ul class="link-list">
+  {
+    guides.map((guide) => (
+      <li>
+        <a href={`/guides/${guide.id}`}>
+          <div class="meta">
+            <EvidenceBadge level={guide.data.evidence} />
+            <span style="margin-left: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em;">
+              {guide.data.category}
+            </span>
+            <span style="margin-left: 0.5rem;">
+              {guide.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </span>
+          </div>
+          <h3>{guide.data.title}</h3>
+          <p style="margin: 0.35rem 0 0; color: var(--mute);">{guide.data.description}</p>
+        </a>
+      </li>
+    ))
+  }
+</ul>
