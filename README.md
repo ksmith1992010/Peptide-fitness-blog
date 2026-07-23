@@ -23,20 +23,26 @@ npm run build
 npx wrangler deploy
 ```
 
-### One-time Cloudflare setup
+### One-time Cloudflare setup (after first successful deploy)
+
+1. Deploy succeeds **without** KV first (site + Worker APIs online).
+2. Then create KV and bind in the dashboard:
 
 ```bash
 npx wrangler kv namespace create SUBSCRIBERS
 npx wrangler kv namespace create NEWS_DRAFTS
 ```
 
-Paste the returned IDs into `wrangler.jsonc` (replace placeholder IDs).
+In Cloudflare → Worker → Settings → Bindings:
+- `SUBSCRIBERS` → KV namespace
+- `NEWS_DRAFTS` → KV namespace
 
-Optional secret for manual news runs:
+Or uncomment `kv_namespaces` in `wrangler.jsonc` with the real IDs and redeploy.
+
+Optional:
 
 ```bash
 npx wrangler secret put NEWS_TRIGGER_SECRET
-# POST /api/news/run with Authorization: Bearer <secret>
 ```
 
 Dashboard Git settings:

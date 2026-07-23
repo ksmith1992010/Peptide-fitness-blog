@@ -9,8 +9,8 @@
 
 export interface Env {
   ASSETS: Fetcher;
-  SUBSCRIBERS: KVNamespace;
-  NEWS_DRAFTS: KVNamespace;
+  SUBSCRIBERS?: KVNamespace;
+  NEWS_DRAFTS?: KVNamespace;
   NEWS_TRIGGER_SECRET?: string;
 }
 
@@ -65,6 +65,17 @@ async function handleNewsletter(request: Request, env: Env): Promise<Response> {
   if (!body?.email || !isEmail(body.email)) return json({ error: 'Valid email required' }, 400, request);
   // honeypot
   if (body.company) return json({ message: 'Thanks — you’re on the Amino Brief list (or already were).' }, 200, request);
+
+  if (!env.SUBSCRIBERS) {
+    return json(
+      {
+        error:
+          'Newsletter storage is not configured yet. Create a KV namespace named SUBSCRIBERS and bind it in Cloudflare.',
+      },
+      503,
+      request,
+    );
+  }
 
   const email = body.email.trim().toLowerCase();
   const key = `email:${email}`;
@@ -186,6 +197,10 @@ Educational desk note only. Not medical advice.
 }
 
 export async function runNewsLoop(env: Env): Promise<{ created: number; drafts: NewsItem[] }> {
+  if (!env.NEWS_DRAFTS) {
+    return { created: 0, drafts: [] };
+  }
+  const store = env.NEWS_DRAFTS;
   const items = await fetchFeeds();
   const created: NewsItem[] = [];
 
@@ -205,14 +220,14 @@ export async function runNewsLoop(env: Env): Promise<{ created: number; drafts: 
 
     // de-dupe by URL
     const urlKey = `url:${item.url}`;
-    const seen = await env.NEWS_DRAFTS.get(urlKey);
+    const seen = await store.get(urlKey);
     if (seen) continue;
-    await env.NEWS_DRAFTS.put(urlKey, id);
-    await env.NEWS_DRAFTS.put(`draft:${id}`, JSON.stringify(draft));
+    await store.put(urlKey, id);
+    await store.put(`draft:${id}`, JSON.stringify(draft));
     created.push(draft);
   }
 
-  await env.NEWS_DRAFTS.put(
+  await store.put(
     'meta:last-run',
     JSON.stringify({ at: new Date().toISOString(), created: created.length }),
   );
@@ -221,12 +236,14 @@ export async function runNewsLoop(env: Env): Promise<{ created: number; drafts: 
 }
 
 async function listDrafts(env: Env): Promise<NewsItem[]> {
+  if (!env.NEWS_DRAFTS) return [];
+  const store = env.NEWS_DRAFTS;
   const drafts: NewsItem[] = [];
   let cursor: string | undefined;
   do {
-    const page = await env.NEWS_DRAFTS.list({ prefix: 'draft:', cursor, limit: 100 });
+    const page = await store.list({ prefix: 'draft:', cursor, limit: 100 });
     for (const key of page.keys) {
-      const raw = await env.NEWS_DRAFTS.get(key.name);
+      const raw = await store.get(key.name);
       if (!raw) continue;
       try {
         drafts.push(JSON.parse(raw) as NewsItem);
@@ -245,6 +262,17 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   if (url.pathname === '/api/newsletter') return handleNewsletter(request, env);
 
   if (url.pathname === '/api/news/drafts' && request.method === 'GET') {
+    if (!env.NEWS_DRAFTS) {
+      return json(
+        {
+          drafts: [],
+          lastRun: null,
+          warning: 'NEWS_DRAFTS KV is not bound yet. Create and bind it in Cloudflare to enable the desk.',
+        },
+        200,
+        request,
+      );
+    }
     const drafts = await listDrafts(env);
     return json(
       {
@@ -269,6 +297,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     const auth = request.headers.get('Authorization') || '';
     const secret = env.NEWS_TRIGGER_SECRET;
     if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401, request);
+    if (!env.NEWS_DRAFTS) return json({ error: 'NEWS_DRAFTS KV not configured' }, 503, request);
     const id = url.pathname.split('/').pop();
     if (!id) return json({ error: 'Not found' }, 404, request);
     const raw = await env.NEWS_DRAFTS.get(`draft:${id}`);
@@ -280,6 +309,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     const auth = request.headers.get('Authorization') || '';
     const secret = env.NEWS_TRIGGER_SECRET;
     if (!secret || auth !== `Bearer ${secret}`) return json({ error: 'Unauthorized' }, 401, request);
+    if (!env.NEWS_DRAFTS) return json({ error: 'NEWS_DRAFTS KV not configured' }, 503, request);
     const result = await runNewsLoop(env);
     return json(result, 200, request);
   }
