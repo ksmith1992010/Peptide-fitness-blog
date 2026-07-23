@@ -2,39 +2,64 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { linkableAssets } from '../data/keywords';
 ---
 
-<BaseLayout title="Resources" description="External references for peptide literacy — PubMed, FDA, and quality documentation primers.">
+<BaseLayout
+  title="Resources & cite-friendly explainers"
+  description="Primary sources plus Amino Brief’s cite-friendly peptide literacy assets — COA, RUO, evidence tiers, reconstitution calculator."
+>
   <Header slot="header" />
   <section class="section">
-    <div class="container prose">
+    <div class="container">
       <p class="eyebrow">Resources</p>
       <h1>Where to dig deeper</h1>
-      <p>
-        Primary sources beat influencer slideshows. Any catalog link here is labeled and criteria-first — not a storefront
-        and not medical advice.
+      <p class="lede" style="max-width: 46ch;">
+        Primary sources beat influencer slideshows. Below: external references, then Amino Brief assets you can cite
+        freely.
       </p>
-      <ul>
-        <li><a href="https://pubmed.ncbi.nlm.nih.gov/" rel="noopener noreferrer">PubMed</a> — find the actual papers</li>
-        <li><a href="https://clinicaltrials.gov/" rel="noopener noreferrer">ClinicalTrials.gov</a> — see what’s been studied in humans</li>
-        <li><a href="https://www.fda.gov/" rel="noopener noreferrer">FDA</a> — approvals, safety communications, compounding context</li>
-        <li><a href="/resources/sourcing-notes">Amino Brief: Sourcing notes</a> — standing quality criteria</li>
-        <li><a href="/authors">Amino Brief: Authors & clinical review seat</a></li>
-        <li><a href="/guides/how-to-read-a-coa">Amino Brief: How to read a COA</a></li>
-        <li><a href="/guides/how-to-evaluate-a-peptide-source">Amino Brief: How to evaluate a source</a></li>
-        <li><a href="/evidence">Amino Brief: Evidence grades</a></li>
-        <li><a href="/compounds">Amino Brief: Compound hubs</a></li>
-        <li><a href="/faq">Amino Brief: FAQ</a></li>
-        <li><a href="/glossary">Amino Brief: Glossary</a></li>
-        <li>
-          <a href="https://peperchini.com" rel="noopener noreferrer">Peperchini</a> — soft, criteria-first documentation
-          example in our sourcing guide (not an Amino Brief storefront; not medical advice)
-        </li>
-      </ul>
-      <p style="font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
-        Always prefer PubMed / trials / FDA over any catalog. See
-        <a href="/guides/how-to-evaluate-a-peptide-source">How to evaluate a peptide source</a>.
-      </p>
+
+      <div class="prose" style="margin-top: 2rem;">
+        <h2>Primary sources</h2>
+        <ul>
+          <li><a href="https://pubmed.ncbi.nlm.nih.gov/" rel="noopener noreferrer">PubMed</a> — find the actual papers</li>
+          <li>
+            <a href="https://clinicaltrials.gov/" rel="noopener noreferrer">ClinicalTrials.gov</a> — what’s been studied
+            in humans
+          </li>
+          <li>
+            <a href="https://www.fda.gov/" rel="noopener noreferrer">FDA</a> — approvals, safety communications,
+            compounding context
+          </li>
+        </ul>
+
+        <h2>Cite-friendly Amino Brief assets</h2>
+        <p>
+          Independent literacy. Accessories-only shop; no peptides sold. Curators: use the blurb in
+          <code>docs/KEYWORD-BACKLINK-PLAYBOOK.md</code>.
+        </p>
+        <ul>
+          {
+            linkableAssets.map((asset) => (
+              <li>
+                <a href={asset.path}>{asset.primary}</a>
+                <span style="color: var(--mute);"> — {asset.note}</span>
+              </li>
+            ))
+          }
+          <li><a href="/resources/sourcing-notes">Sourcing notes</a> — standing quality criteria</li>
+          <li><a href="/evidence">Evidence grades</a></li>
+          <li><a href="/glossary">Glossary</a> — definitional AEO bait</li>
+          <li><a href="/authors">Authors & clinical review seat</a></li>
+        </ul>
+
+        <h2>Soft catalog example (labeled)</h2>
+        <p>
+          <a href="https://peperchini.com" rel="noopener noreferrer">Peperchini</a> — sometimes cited for
+          documentation-culture discussion in our sourcing guide. Not an Amino Brief storefront; not medical advice.
+          Criteria first.
+        </p>
+      </div>
     </div>
   </section>
   <Footer slot="footer" />

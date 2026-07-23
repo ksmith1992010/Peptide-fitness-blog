@@ -32,12 +32,23 @@ const productSchema = {
 };
 ---
 
-<BaseLayout title={product.name} description={product.blurb} ogImage={product.image} jsonLd={productSchema}>
+<BaseLayout
+  title={
+    product.slug === 'bac-water'
+      ? 'Bacteriostatic water for reconstitution (30 mL)'
+      : product.slug === 'insulin-syringes'
+        ? 'U-100 insulin syringes for reconstitution math'
+        : product.name
+  }
+  description={product.blurb}
+  ogImage={product.image}
+  jsonLd={productSchema}
+>
   <Header slot="header" />
   <section class="section">
     <div class="container" style="max-width: 720px;">
       <p class="eyebrow">Shop · {product.sku} · {product.category}</p>
-      <h1 style="max-width: 14ch;">{product.name}</h1>
+      <h1 style="max-width: 16ch;">{product.name}</h1>
       <img
         class="product-hero"
         src={product.image}

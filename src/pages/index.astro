@@ -6,6 +6,7 @@ import GuideList from '../components/GuideList.astro';
 import NewsletterForm from '../components/NewsletterForm.astro';
 import { getCollection } from 'astro:content';
 import { products } from '../data/products';
+import { peptides } from '../data/peptides';
 
 const featured = (await getCollection('guides'))
   .filter((g) => g.data.featured)
@@ -15,6 +16,8 @@ const featured = (await getCollection('guides'))
 const shopSpotlight = products.filter((p) =>
   ['bac-water', 'insulin-syringes', 'vial-carry-case'].includes(p.slug),
 );
+
+const compoundLinks = peptides.filter((p) => p.id !== 'generic').slice(0, 7);
 ---
 
 <BaseLayout
@@ -24,23 +27,59 @@ const shopSpotlight = products.filter((p) =>
   <Header slot="header" />
 
   <section class="hero">
+    <div class="hero-plane" aria-hidden="true">
+      <img
+        class="hero-photo"
+        src="/shop/recon-starter-kit.webp"
+        alt=""
+        width="900"
+        height="900"
+        fetchpriority="high"
+      />
+    </div>
     <div class="container hero-inner">
       <div class="hero-copy">
-        <p class="eyebrow fade-up">Amino Brief</p>
-        <h1 class="fade-up-delay">Know the peptide before you chase the hype.</h1>
+        <h1 class="brand-hero fade-up">Amino Brief</h1>
+        <p class="hero-line fade-up-delay">Know the peptide before you chase the hype.</p>
         <p class="lede fade-up-delay-2">
-          Straight talk on research peptides, evidence grades, and reconstitution math — with sources, not vibes.
+          Evidence grades, sourcing literacy, and reconstitution math — with sources, not vibes.
         </p>
         <div class="btn-row fade-up-delay-2">
-          <a class="btn btn-primary" href="/learn">Start with the basics</a>
-          <a class="btn btn-secondary" href="/tools">Open the tools</a>
+          <a class="btn btn-primary" href="/learn">Start learning</a>
+          <a class="btn btn-secondary" href="/guides">Browse guides</a>
         </div>
       </div>
     </div>
-    <div class="hero-plane" aria-hidden="true"></div>
   </section>
 
-  <section class="section">
+  <section class="section trust-strip">
+    <div class="container">
+      <h2 class="trust-heading">How to read this site</h2>
+      <p class="trust-lede">Three doors. Same rule: literacy first, protocols never.</p>
+      <ul class="trust-links">
+        <li>
+          <a href="/evidence">
+            <strong>Evidence grades</strong>
+            <span>FDA context vs animal vs gym lore — labeled on every guide.</span>
+          </a>
+        </li>
+        <li>
+          <a href="/guides/how-to-read-a-coa">
+            <strong>How to read a COA</strong>
+            <span>Lot match, HPLC, red flags — cite-friendly checklist.</span>
+          </a>
+        </li>
+        <li>
+          <a href="/compounds">
+            <strong>Compound hubs</strong>
+            <span>Name-by-name research notes with duration context.</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
     <div class="container">
       <div class="section-head">
         <h2>Featured briefs</h2>
@@ -59,9 +98,21 @@ const shopSpotlight = products.filter((p) =>
         <h2>Compound hubs</h2>
         <p>Name-by-name research literacy — evidence notes, duration context, tool links. Not protocols.</p>
       </div>
+      <ul class="link-list" style="margin: 0 0 1.25rem;">
+        {
+          compoundLinks.map((p) => (
+            <li>
+              <a href={`/compounds/${p.id}`}>
+                <h3 style="margin: 0;">{p.name}</h3>
+                <p style="margin: 0.35rem 0 0; color: var(--mute);">{p.summary}</p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
       <div class="btn-row">
         <a class="btn btn-primary" href="/compounds">Browse compounds</a>
-        <a class="btn btn-secondary" href="/tools">Open the tools</a>
+        <a class="btn btn-secondary" href="/evidence">Evidence grades</a>
       </div>
     </div>
   </section>
@@ -125,11 +176,25 @@ const shopSpotlight = products.filter((p) =>
   .hero-plane {
     position: absolute;
     inset: 0;
-    background:
-      linear-gradient(120deg, rgba(243, 245, 242, 0.92) 0%, rgba(243, 245, 242, 0.55) 42%, rgba(243, 245, 242, 0.2) 70%),
-      url('/hero-texture.svg') center/cover no-repeat,
-      radial-gradient(circle at 70% 40%, #2a6b6b 0%, #1a1a1a 55%, #0f1413 100%);
     z-index: 0;
+  }
+
+  .hero-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 70% center;
+    transform: scale(1.04);
+    animation: heroDrift 18s ease-in-out alternate infinite;
+  }
+
+  .hero-plane::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(105deg, rgba(238, 242, 239, 0.96) 0%, rgba(238, 242, 239, 0.82) 38%, rgba(238, 242, 239, 0.28) 68%, rgba(15, 20, 19, 0.35) 100%),
+      linear-gradient(180deg, transparent 40%, rgba(15, 20, 19, 0.25) 100%);
   }
 
   .hero-inner {
@@ -138,22 +203,99 @@ const shopSpotlight = products.filter((p) =>
     padding: 5.5rem 0 4rem;
   }
 
-  .hero-copy {
-    max-width: 18ch;
+  .brand-hero {
+    margin: 0 0 0.35rem;
+    font-size: clamp(3.4rem, 11vw, 6.8rem);
+    letter-spacing: 0.03em;
+    line-height: 0.92;
+    max-width: 12ch;
+  }
+
+  .hero-line {
+    margin: 0 0 0.85rem;
+    font-family: var(--font-body);
+    font-size: clamp(1.25rem, 2.6vw, 1.65rem);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink);
+    max-width: 22ch;
+    text-wrap: balance;
   }
 
   .hero-copy .lede {
-    max-width: 28ch;
+    max-width: 32ch;
     color: var(--ink-soft);
   }
 
-  @media (min-width: 800px) {
-    .hero-copy {
-      max-width: 14ch;
-    }
+  .trust-strip {
+    padding-top: 3rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .trust-heading {
+    margin-bottom: 0.35rem;
+  }
+
+  .trust-lede {
+    color: var(--mute);
+    margin: 0 0 1.5rem;
+    max-width: 40ch;
+  }
+
+  .trust-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .trust-links a {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    color: inherit;
+    transition: padding-left 160ms ease, color 160ms ease;
+  }
+
+  .trust-links a:hover {
+    padding-left: 0.35rem;
+    color: var(--teal-deep);
+  }
+
+  .trust-links strong {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .trust-links span {
+    font-family: var(--font-ui);
+    font-size: 0.92rem;
+    color: var(--mute);
   }
 
   .home-shop {
     margin-top: 1.5rem;
+  }
+
+  @keyframes heroDrift {
+    from {
+      transform: scale(1.04) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.08) translate3d(-1.5%, 1%, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-photo {
+      animation: none;
+      transform: none;
+    }
   }
 </style>

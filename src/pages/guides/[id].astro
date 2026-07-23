@@ -5,6 +5,7 @@ import Footer from '../../components/Footer.astro';
 import EvidenceBadge from '../../components/EvidenceBadge.astro';
 import { getCollection, render } from 'astro:content';
 import { getAuthor } from '../../data/authors';
+import { continuePathsForGuide, clusterIdForGuide, seoClusters } from '../../data/seo-clusters';
 
 export async function getStaticPaths() {
   const guides = await getCollection('guides');
@@ -26,6 +27,10 @@ const reviewLabel =
     : guide.data.reviewStatus === 'pending'
       ? 'Clinical review pending'
       : 'Editorial review only — not clinician-reviewed';
+
+const clusterId = clusterIdForGuide(guide);
+const clusterLabel = seoClusters.find((c) => c.id === clusterId)?.shortLabel || 'Literacy';
+const continueLinks = continuePathsForGuide(guide);
 
 const articleSchema = {
   '@context': 'https://schema.org',
@@ -55,27 +60,52 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: `Is this ${guide.data.title} article medical advice?`,
+      name: `What does Amino Brief cover in “${guide.data.title}”?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. Amino Brief publishes educational research-literacy content only. It is not medical advice, a diagnosis, or a treatment plan. Speak with a qualified clinician about health decisions.',
+        text: `${guide.data.description} Educational research literacy only — not medical advice or a protocol.`,
       },
     },
     {
       '@type': 'Question',
-      name: 'What evidence grade does Amino Brief use?',
+      name: `What evidence grade is “${guide.data.title}”?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `This guide is tagged ${guide.data.evidence}. Amino Brief separates FDA-approved context, human evidence, mixed evidence, animal/preclinical work, anecdotal claims, and literacy how-tos so readers do not confuse gym lore with clinical proof.`,
+        text: `Tagged ${guide.data.evidence}. Amino Brief separates FDA-approved context, human evidence, mixed evidence, animal/preclinical work, anecdotal claims, and literacy how-tos.`,
       },
     },
     {
       '@type': 'Question',
-      name: 'Was this piece clinician-reviewed?',
+      name: `Was “${guide.data.title}” clinician-reviewed?`,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: `${reviewLabel}. See /authors for the clinical review seat status.`,
+        text: `${reviewLabel}. Seat status: https://aminobrief.com/authors`,
       },
+    },
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: new URL('/', Astro.site).toString(),
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Guides',
+      item: new URL('/guides', Astro.site).toString(),
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: guide.data.title,
+      item: new URL(`/guides/${guide.id}`, Astro.site).toString(),
     },
   ],
 };
@@ -85,26 +115,36 @@ const faqSchema = {
   title={guide.data.title}
   description={guide.data.description}
   ogType="article"
-  jsonLd={[articleSchema, faqSchema]}
+  jsonLd={[articleSchema, faqSchema, breadcrumbSchema]}
 >
   <Header slot="header" />
   <article class="section">
     <div class="container">
-      <p class="eyebrow">{guide.data.category}</p>
+      <p class="eyebrow" style="font-family: var(--font-ui);">
+        <a href="/guides" style="color: inherit;">Guides</a>
+        <span aria-hidden="true"> / </span>
+        <a href={`/guides?cluster=${clusterId}`} style="color: inherit;">{clusterLabel}</a>
+      </p>
       <h1 style="max-width: 14ch;">{guide.data.title}</h1>
-      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 1rem 0 1.5rem; font-family: var(--font-ui); font-size: 0.9rem; color: var(--mute);">
-        <EvidenceBadge level={guide.data.evidence} />
-        <span>
-          Updated {
-            updated.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })
-          }
-        </span>
-        <span>By {author.name}</span>
-        <span>{reviewLabel}</span>
+      <div class="guide-trust">
+        <div class="guide-trust-row">
+          <EvidenceBadge level={guide.data.evidence} />
+          <a href="/evidence">How grades work</a>
+        </div>
+        <div class="guide-trust-row mute">
+          <span>
+            Updated {
+              updated.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })
+            }
+          </span>
+          <span aria-hidden="true">·</span>
+          <a href="/authors">By {author.name}</a>
+        </div>
+        <p class="guide-review">{reviewLabel}</p>
       </div>
       <p class="lede" style="max-width: 42ch;">{guide.data.description}</p>
       <div class="prose" style="margin-top: 2rem;">
@@ -141,6 +181,18 @@ const faqSchema = {
           criteria are on <a href="/resources/sourcing-notes">Sourcing notes</a>.
         </p>
       </div>
+      <div class="continue-cluster">
+        <h2>Continue in this path</h2>
+        <ul>
+          {
+            continueLinks.map((link) => (
+              <li>
+                <a href={link.path}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
       <p class="disclaimer" style="margin-top: 2.5rem; max-width: var(--read);">
         Educational content only. Amino Brief does not provide medical advice, dosing protocols for human use,
         diagnosis, or treatment recommendations. Talk to a qualified clinician about health decisions.
@@ -149,3 +201,60 @@ const faqSchema = {
   </article>
   <Footer slot="footer" />
 </BaseLayout>
+
+<style>
+  .guide-trust {
+    display: grid;
+    gap: 0.45rem;
+    margin: 1rem 0 1.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+  }
+
+  .guide-trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+  }
+
+  .guide-trust-row.mute {
+    color: var(--mute);
+  }
+
+  .guide-review {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+
+  .continue-cluster {
+    margin-top: 2.75rem;
+    max-width: var(--read);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .continue-cluster h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .continue-cluster ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+    font-family: var(--font-ui);
+  }
+
+  .continue-cluster a {
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .continue-cluster a:hover {
+    text-decoration: underline;
+  }
+</style>

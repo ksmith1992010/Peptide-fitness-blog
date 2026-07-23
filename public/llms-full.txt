@@ -3,27 +3,45 @@
 Site: https://aminobrief.com
 Tone: educational research literacy; not medical advice; accessories only in shop.
 
-## Guides
+## Guides — literacy
 - https://aminobrief.com/guides/what-peptides-actually-are
 - https://aminobrief.com/guides/approved-vs-research-compounds
 - https://aminobrief.com/guides/how-to-read-a-coa
 - https://aminobrief.com/guides/why-ruo-labels-exist
 - https://aminobrief.com/guides/how-to-evaluate-a-peptide-source
 - https://aminobrief.com/guides/evidence-tiers-cell-to-human
-- https://aminobrief.com/guides/bpc-157-evidence-snapshot
 - https://aminobrief.com/guides/reconstitution-math-without-the-guru
-- https://aminobrief.com/guides/mots-c-snapshot
-- https://aminobrief.com/guides/retatrutide-evidence-snapshot
-- https://aminobrief.com/guides/tesamorelin-evidence-snapshot
+- https://aminobrief.com/guides/storage-and-cold-chain-literacy
+- https://aminobrief.com/guides/common-peptide-myths
+- https://aminobrief.com/guides/reading-peptide-papers-without-the-hype
+- https://aminobrief.com/guides/glp1-headlines-vs-evidence
+- https://aminobrief.com/guides/peptide-hormone-signaling-desk-brief
+- https://aminobrief.com/guides/antimicrobial-peptides-hype-check
+- https://aminobrief.com/guides/peptide-synthesis-literacy
+- https://aminobrief.com/guides/cyclic-peptides-research-lane
+- https://aminobrief.com/guides/gpcr-peptide-ligands-literacy
+- https://aminobrief.com/guides/imaging-peptides-research-lane
+- https://aminobrief.com/guides/conotoxin-research-lane
+- https://aminobrief.com/guides/designed-peptides-materials-vs-medicine
+
+## Guides — compound snapshots
+- https://aminobrief.com/guides/bpc-157-evidence-snapshot
 - https://aminobrief.com/guides/tb-500-evidence-snapshot
 - https://aminobrief.com/guides/cjc-ipa-evidence-snapshot
 - https://aminobrief.com/guides/ghk-cu-evidence-snapshot
-- https://aminobrief.com/guides/storage-and-cold-chain-literacy
-- https://aminobrief.com/guides/common-peptide-myths
+- https://aminobrief.com/guides/mots-c-snapshot
+- https://aminobrief.com/guides/retatrutide-evidence-snapshot
+- https://aminobrief.com/guides/tesamorelin-evidence-snapshot
 
 ## Compound hubs
 - https://aminobrief.com/compounds
-- Individual hubs under /compounds/{id} (e.g. bpc-157, mots-c) with evidence + duration context + tool links
+- https://aminobrief.com/compounds/bpc-157
+- https://aminobrief.com/compounds/cjc-ipa
+- https://aminobrief.com/compounds/tesamorelin
+- https://aminobrief.com/compounds/mots-c
+- https://aminobrief.com/compounds/retatrutide
+- https://aminobrief.com/compounds/tb-500
+- https://aminobrief.com/compounds/ghk-cu
 
 ## Tools
 - https://aminobrief.com/tools/reconstitution
@@ -32,22 +50,19 @@ Tone: educational research literacy; not medical advice; accessories only in sho
 
 ## Commerce (accessories only)
 - https://aminobrief.com/shop
-- Products include bacteriostatic water, U-100 syringes, carry cases, prep pads, empty vials, gloves, labels, recon kits, reseller packs — with MOQ / reseller / wholesale tiers.
-- Stripe Checkout available via POST /api/checkout when Worker secrets are set (core SKUs)
+- Products: bacteriostatic water, U-100 syringes, carry cases, prep pads, empty vials, gloves, labels, recon kits, reseller packs — MOQ / reseller / wholesale tiers.
 
-## Trust / ops
+## Trust
 - https://aminobrief.com/editorial
 - https://aminobrief.com/authors
 - https://aminobrief.com/faq
 - https://aminobrief.com/contact
-- https://aminobrief.com/outreach
-- https://aminobrief.com/desk
-- Desk staff tools: Bearer NEWS_TRIGGER_SECRET for full markdown + Workers AI rewrite assist + Resend backfill
-- Publish path: desk draft → human edit → src/content/guides/*.md PR (copy PR body from desk; never auto-publish)
-- Newsletter: KV + optional Resend audience sync / broadcast / backfill
-- Health: GET /api/health (binding booleans only)
+- https://aminobrief.com/resources/sourcing-notes
+- https://aminobrief.com/evidence
+- https://aminobrief.com/learn
 
 ## Policies
 - No peptide compounds sold on this domain
 - Calculators are unit-conversion education
 - Newsroom desk drafts are unpublished until human review
+- Clinical review seat disclosed on /authors (open until seated)

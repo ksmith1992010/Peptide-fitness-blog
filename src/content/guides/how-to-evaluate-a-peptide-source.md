@@ -1,16 +1,19 @@
 ---
 title: How to evaluate a peptide source
-description: A sourcing literacy checklist — documentation, lots, RUO labels, and red flags — without the affiliate carnival.
+description: How to evaluate a peptide source or vendor — COA/lot match, RUO language, HPLC method red flags, and a criteria-first checklist (not an affiliate list).
 pubDate: 2026-07-23
+updatedDate: 2026-07-23
 category: quality
 evidence: literacy
-tags: [sourcing, coa, quality, vendors]
+tags: [sourcing, coa, quality, vendors, checklist]
 featured: true
+authorId: editorial
+reviewStatus: editorial-only
 ---
 
-Buying “research materials” online is where a lot of people get wrecked — not always by the molecule, but by **missing paperwork**, swapped lots, and vibes-based purity claims.
+**How to evaluate a peptide source:** start with paperwork, not vibes. Buying “research materials” online is where people get wrecked — missing lot docs, swapped certificates, and purity theater.
 
-This is a literacy checklist. Not a vendor endorsement list.
+This is a literacy checklist. Not a vendor endorsement list. Amino Brief sells accessories only.
 
 ## What “good” looks like
 

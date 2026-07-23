@@ -38,26 +38,64 @@ const pageSchema = {
   dateModified: new Date().toISOString().slice(0, 10),
   audience: 'https://schema.org/Researcher',
 };
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: new URL('/', Astro.site).toString(),
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Compounds',
+      item: new URL('/compounds', Astro.site).toString(),
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: compound.name,
+      item: new URL(`/compounds/${compound.id}`, Astro.site).toString(),
+    },
+  ],
+};
 ---
 
 <BaseLayout
   title={`${compound.name} research hub`}
   description={compound.summary}
-  jsonLd={pageSchema}
+  jsonLd={[pageSchema, breadcrumbSchema]}
 >
   <Header slot="header" />
   <article class="section">
     <div class="container" style="max-width: 800px;">
-      <p class="eyebrow">{compound.category}</p>
+      <p class="eyebrow" style="font-family: var(--font-ui);">
+        <a href="/compounds" style="color: inherit;">Compounds</a>
+        <span aria-hidden="true"> / </span>
+        {compound.category}
+      </p>
       <h1 style="max-width: 12ch;">{compound.name}</h1>
-      <div style="margin: 1rem 0; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-        <EvidenceBadge level={compound.evidence} />
-        <span style="font-family: var(--font-ui); font-size: 0.85rem; color: var(--mute);">
-          Sources: {compound.sourcesHint}
-        </span>
+      <div class="compound-trust">
+        <div class="compound-trust-row">
+          <EvidenceBadge level={compound.evidence} />
+          <a href="/evidence">Evidence grades</a>
+        </div>
+        <p class="sources-line">
+          <strong>Where to dig:</strong> {compound.sourcesHint}
+        </p>
       </div>
       <p class="lede">{compound.summary}</p>
       <ToolDisclaimer />
+
+      <div class="btn-row" style="margin: 1.5rem 0 2rem;">
+        <a class="btn btn-primary" href="/guides?cluster=compounds">Related literacy</a>
+        <a class="btn btn-secondary" href="/resources/sourcing-notes">Sourcing notes</a>
+        <a class="btn btn-secondary" href="/tools/reconstitution">Recon calculator</a>
+      </div>
 
       <div class="prose">
         <h2>Duration context</h2>
@@ -76,16 +114,11 @@ const pageSchema = {
           {compound.cautions.map((c) => <li>{c}</li>)}
         </ul>
 
-        <h2>Run the math</h2>
+        <h2>Educational tool defaults</h2>
         <p>
-          Defaults for tools: {compound.vialMgDefault} mg vial · {compound.bacWaterMlDefault} mL bac water ·{' '}
-          {compound.referenceAmountMcg} mcg reference amount (educational only).
+          Defaults for unit-math tools: {compound.vialMgDefault} mg vial · {compound.bacWaterMlDefault} mL bac water ·{' '}
+          {compound.referenceAmountMcg} mcg reference amount. Not a prescription.
         </p>
-      </div>
-
-      <div class="btn-row">
-        <a class="btn btn-primary" href={`/tools/reconstitution`}>Reconstitution calculator</a>
-        <a class="btn btn-secondary" href="/tools">All tools</a>
       </div>
 
       {
@@ -105,7 +138,34 @@ const pageSchema = {
           </div>
         )
       }
+
+      <div class="btn-row" style="margin-top: 2rem;">
+        <a class="btn btn-secondary" href="/learn">All learning paths</a>
+        <a class="btn btn-secondary" href="/tools">All tools</a>
+      </div>
     </div>
   </article>
   <Footer slot="footer" />
 </BaseLayout>
+
+<style>
+  .compound-trust {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1rem 0 1.25rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+  }
+
+  .compound-trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+  }
+
+  .sources-line {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+</style>

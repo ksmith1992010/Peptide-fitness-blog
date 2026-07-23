@@ -2,56 +2,71 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { seoClusters } from '../data/seo-clusters';
 
-const paths = [
-  {
-    title: '1. What peptides actually are',
-    body: 'Amino acid chains, signaling, and why TikTok names are not a pharmacology course.',
-    href: '/guides/what-peptides-actually-are',
-  },
-  {
-    title: '2. Evidence grades',
-    body: 'FDA-approved medicines vs animal papers vs gym lore. Learn the difference before you argue online.',
-    href: '/evidence',
-  },
-  {
-    title: '3. Quality & sourcing literacy',
-    body: 'COAs, HPLC, RUO labels, storage, and how to evaluate a source without the affiliate carnival.',
-    href: '/guides/how-to-evaluate-a-peptide-source',
-  },
-  {
-    title: '4. Compound hubs',
-    body: 'Name-by-name research literacy — evidence notes, duration context, tools.',
-    href: '/compounds',
-  },
-  {
-    title: '5. Reconstitution math',
-    body: 'mg, mL, units. Run the numbers yourself.',
-    href: '/tools/reconstitution',
-  },
-];
+const starter = seoClusters.filter((c) =>
+  ['literacy', 'quality', 'compounds', 'incretin-media', 'methods-desk', 'tools'].includes(c.id),
+);
 ---
 
-<BaseLayout title="Learn" description="Learning paths for peptide awareness — basics, evidence, quality, compounds, and math tools.">
+<BaseLayout
+  title="Learn"
+  description="Learning paths for peptide awareness — literacy, sourcing, compounds, media headlines, methods, and tools."
+>
   <Header slot="header" />
   <section class="section">
     <div class="container">
       <p class="eyebrow">Learning paths</p>
       <h1>Start here. Skip the guru fluff.</h1>
-      <p class="lede">Five stops. No stack porn. Just the foundation so the rest of the internet makes more sense.</p>
-      <ul class="link-list" style="margin-top: 2.5rem;">
+      <p class="lede">
+        Pick a path by what you’re trying to figure out. Every door ends in evidence grades — never in a protocol.
+      </p>
+      <div class="btn-row" style="margin-top: 1.25rem;">
+        <a class="btn btn-primary" href="/guides/what-peptides-actually-are">Begin with the basics</a>
+        <a class="btn btn-secondary" href="/evidence">See evidence grades</a>
+      </div>
+
+      <ul class="link-list" style="margin-top: 2.75rem;">
         {
-          paths.map((p) => (
+          starter.map((c) => (
             <li>
-              <a href={p.href}>
-                <h3>{p.title}</h3>
-                <p style="margin: 0.35rem 0 0; color: var(--mute);">{p.body}</p>
+              <a href={c.hubPath}>
+                <div class="meta" style="text-transform: uppercase; letter-spacing: 0.08em;">
+                  {c.shortLabel}
+                </div>
+                <h3>{c.name}</h3>
+                <p style="margin: 0.35rem 0 0; color: var(--mute);">{c.job}</p>
               </a>
+              <p class="cluster-children">
+                {c.pages.slice(0, 4).map((p, idx) => (
+                  <>
+                    {idx > 0 && ' · '}
+                    <a href={p.path}>{p.label}</a>
+                  </>
+                ))}
+              </p>
             </li>
           ))
         }
       </ul>
+
+      <p class="disclaimer" style="margin-top: 2.5rem; max-width: 52ch;">
+        Educational research literacy only. Amino Brief does not sell peptides and does not provide medical advice.
+        Trust pages: <a href="/authors">Authors</a> · <a href="/editorial">Editorial</a>.
+      </p>
     </div>
   </section>
   <Footer slot="footer" />
 </BaseLayout>
+
+<style>
+  .cluster-children {
+    margin: 0.35rem 0 0.75rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+  }
+
+  .cluster-children a {
+    color: var(--teal-deep);
+  }
+</style>

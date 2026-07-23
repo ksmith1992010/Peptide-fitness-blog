@@ -4,19 +4,19 @@
 Amino Brief explains research peptides with sources, gym-floor clarity, and hard disclaimers. Not medical advice. Not a peptide pharmacy.
 
 ## Pillars
-- [Learn](https://aminobrief.com/learn): starter path
+- [Learn](https://aminobrief.com/learn): starter path + topical clusters
 - [Compounds](https://aminobrief.com/compounds): research-framed compound hubs
 - [Guides](https://aminobrief.com/guides): evidence-tagged articles
 - [Evidence grades](https://aminobrief.com/evidence): how claims are labeled
 - [Editorial standards](https://aminobrief.com/editorial): E-E-A-T / corrections
 - [Authors](https://aminobrief.com/authors): publisher identity + review disclosure
+- [Sourcing notes](https://aminobrief.com/resources/sourcing-notes): standing quality criteria
 - [FAQ](https://aminobrief.com/faq): common boundaries
-- [Contact](https://aminobrief.com/contact): editorial / orders mail
+- [Contact](https://aminobrief.com/contact): editorial / orders
 - [Tools](https://aminobrief.com/tools): reconstitution / syringe / vial math
 - [Shop](https://aminobrief.com/shop): bac water, syringes, cases, reseller MOQs
 - [Glossary](https://aminobrief.com/glossary)
 - [Newsletter](https://aminobrief.com/newsletter)
-- [Growth / SEO notes](https://aminobrief.com/growth)
 
 ## Optional
 - [llms-full.txt](https://aminobrief.com/llms-full.txt): expanded index

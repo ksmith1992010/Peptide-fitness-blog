@@ -3,31 +3,106 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import ReconCalculator from '../../components/tools/ReconCalculator.astro';
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What does a peptide reconstitution calculator do?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'It converts vial milligrams and bacteriostatic water milliliters into concentration (mg/mL), draw volume (mL), and U-100 syringe units. Amino Brief’s tool is educational unit math — not a dosing protocol.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What formulas does peptide reconstitution math use?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'concentration (mg/mL) = vial mg ÷ water mL; volume (mL) = amount mg ÷ concentration; U-100 units = mL × 100.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is this medical advice?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. Educational research literacy and unit conversion only. Amino Brief does not sell peptides and does not provide injection protocols.',
+      },
+    },
+  ],
+};
+
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'Calculate peptide reconstitution concentration and U-100 units',
+  description:
+    'Educational unit-conversion steps for lyophilized peptide vial math using bacteriostatic water and U-100 syringe units.',
+  step: [
+    {
+      '@type': 'HowToStep',
+      name: 'Enter vial milligrams',
+      text: 'Use the labeled peptide mass on the vial (mg).',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Enter water volume',
+      text: 'Enter bacteriostatic water volume in mL used for reconstitution.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Read concentration',
+      text: 'concentration (mg/mL) = vial mg ÷ water mL.',
+    },
+    {
+      '@type': 'HowToStep',
+      name: 'Convert amount to units',
+      text: 'volume (mL) = amount mg ÷ concentration; U-100 units = mL × 100.',
+    },
+  ],
+};
 ---
 
 <BaseLayout
-  title="Reconstitution calculator"
-  description="Peptide reconstitution calculator with compound dropdown, duration context, and educational disclaimers."
+  title="Peptide reconstitution calculator (mg, mL, U-100)"
+  description="Free peptide reconstitution calculator — concentration from vial mg and bac water mL, draw volume, and U-100 units. Educational math, not a protocol."
+  jsonLd={[faqSchema, howToSchema]}
 >
   <Header slot="header" />
   <section class="section">
     <div class="container" style="max-width: 820px;">
       <p class="eyebrow">Tools</p>
-      <h1>Reconstitution calculator</h1>
-      <p class="lede" style="max-width: 42ch;">
-        Pick a peptide, set length-of-use context, then run vial math. Research notes — not a protocol sheet.
+      <h1>Peptide reconstitution calculator</h1>
+      <p class="lede" style="max-width: 44ch;">
+        A peptide reconstitution calculator converts vial milligrams and bacteriostatic water milliliters into
+        concentration, draw volume, and U-100 syringe units. Research math — not a protocol sheet.
       </p>
       <div style="margin-top: 1.5rem;">
         <ReconCalculator />
       </div>
       <div class="prose" style="margin-top: 2.5rem;">
-        <h2>The formulas</h2>
+        <h2>Formulas</h2>
         <ul>
           <li><code>concentration (mg/mL) = vial mg ÷ water mL</code></li>
-          <li><code>volume (mL) = dose mg ÷ concentration</code></li>
+          <li><code>volume (mL) = amount mg ÷ concentration</code></li>
           <li><code>U-100 units = volume mL × 100</code></li>
         </ul>
-        <p><a href="/shop">Shop accessories</a> · <a href="/guides/reconstitution-math-without-the-guru">Recon guide</a></p>
+        <h2>Read with</h2>
+        <ul>
+          <li><a href="/guides/reconstitution-math-without-the-guru">Peptide reconstitution math guide</a></li>
+          <li><a href="/guides/how-to-read-a-coa">How to read a peptide COA</a></li>
+          <li><a href="/shop/bac-water">Bacteriostatic water (accessories)</a></li>
+          <li><a href="/shop/insulin-syringes">U-100 insulin syringes</a></li>
+          <li><a href="/tools/vial-math">Vial planner</a></li>
+        </ul>
+        <h2>FAQ</h2>
+        <h3>Does changing water change how much peptide is in the vial?</h3>
+        <p>No. It changes concentration and draw size only.</p>
+        <h3>Is this dosing advice?</h3>
+        <p>No. Educational unit conversion only. Not medical advice.</p>
       </div>
     </div>
   </section>
