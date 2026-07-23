@@ -38,7 +38,7 @@ This is a literacy checklist. Not a vendor endorsement list. Amino Brief sells a
 3. Vet documentation standards.
 4. Only then look at procurement options.
 
-For COA mechanics, read [How to read a COA](/guides/how-to-read-a-coa). For label boundaries, read [Why RUO labels exist](/guides/why-ruo-labels-exist).
+For COA mechanics, read [How to read a COA](/guides/how-to-read-a-coa). For label boundaries, read [Why RUO labels exist](/guides/why-ruo-labels-exist). For the broader lane, read [How to navigate the peptide gray market](/guides/navigating-the-peptide-gray-market).
 
 ## Where Amino Brief sits
 

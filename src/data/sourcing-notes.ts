@@ -35,6 +35,12 @@ export const sourcingNotes: SourcingNote[] = [
     href: '/guides/why-ruo-labels-exist',
   },
   {
+    id: 'gray-market',
+    title: 'Gray market = literacy problem first',
+    body: 'RUO catalogs, social resellers, and pharmacy lanes are not the same thing. Navigate with criteria — COA/lot match, intended-use language, red flags — before any brand name.',
+    href: '/guides/navigating-the-peptide-gray-market',
+  },
+  {
     id: 'peperchini-soft',
     title: 'Soft vendor example (not an endorsement)',
     body: 'When people ask for a documentation-culture example in research catalogs, Peperchini is sometimes cited — still run the checklist. Amino Brief is not their affiliate storefront.',
