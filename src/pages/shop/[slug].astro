@@ -80,8 +80,9 @@ const productSchema = {
         stripeCheckoutSlugs.includes(product.slug as (typeof stripeCheckoutSlugs)[number]) && (
           <div class="tool-panel" style="margin-top: 2rem;" data-stripe-panel data-checkout-sku={product.slug}>
             <h2 style="font-size: 1.4rem;">Card checkout</h2>
-            <p style="color: var(--mute);">
-              Retail Stripe Checkout when configured. Reseller / wholesale MOQs still use the email request below.
+            <p style="color: var(--mute);" data-stripe-blurb>
+              Retail Stripe Checkout when this SKU is priced in Worker secrets. Reseller / wholesale MOQs still use the
+              email request below.
             </p>
             <div class="tool-grid" style="margin-top: 1rem;">
               <div class="field">
@@ -89,8 +90,8 @@ const productSchema = {
                 <input id="stripe-qty" name="stripe-qty" type="number" min="1" max="100" value="1" />
               </div>
             </div>
-            <button class="btn btn-primary" type="button" data-stripe-checkout style="margin-top: 1rem;">
-              Pay with card
+            <button class="btn btn-primary" type="button" data-stripe-checkout style="margin-top: 1rem;" disabled>
+              Checking card checkout…
             </button>
             <p data-stripe-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
           </div>
@@ -143,7 +144,8 @@ const productSchema = {
       </div>
 
       <p class="disclaimer" style="margin-top: 1.5rem;">
-        Accessories only. Amino Brief does not sell peptides and does not provide medical or injection advice.
+        Accessories only. Catalog images are studio pack-shots for merchandising; swap to received-pack photography when
+        inventory lands. Amino Brief does not sell peptides and does not provide medical or injection advice.
       </p>
     </div>
   </section>
@@ -193,6 +195,7 @@ const productSchema = {
   const stripePanel = document.querySelector('[data-stripe-panel]');
   const stripeBtn = document.querySelector('[data-stripe-checkout]');
   const stripeStatus = document.querySelector('[data-stripe-status]');
+  const stripeBlurb = document.querySelector('[data-stripe-blurb]');
   const params = new URLSearchParams(window.location.search);
   if (stripeStatus && params.get('checkout') === 'success') {
     stripeStatus.textContent = 'Payment started successfully — check your email from Stripe for the receipt.';
@@ -200,8 +203,40 @@ const productSchema = {
   if (stripeStatus && params.get('checkout') === 'cancel') {
     stripeStatus.textContent = 'Checkout canceled. Email order request still works below.';
   }
+
+  async function refreshStripeAvailability() {
+    if (!stripePanel || !(stripeBtn instanceof HTMLButtonElement)) return;
+    const sku = stripePanel.getAttribute('data-checkout-sku');
+    try {
+      const res = await fetch('/api/checkout/priced');
+      const json = await res.json().catch(() => ({}));
+      const priced = Array.isArray(json.pricedSkus) ? json.pricedSkus : [];
+      const live = sku && priced.includes(sku);
+      if (live) {
+        stripeBtn.disabled = false;
+        stripeBtn.textContent = 'Pay with card';
+        if (stripeBlurb) {
+          stripeBlurb.textContent =
+            'Card checkout is live for this SKU. Reseller / wholesale MOQs still use the email request below.';
+        }
+      } else {
+        stripeBtn.disabled = true;
+        stripeBtn.textContent = 'Card checkout not priced yet';
+        if (stripeBlurb) {
+          stripeBlurb.textContent =
+            'Stripe secret / price ID not set for this SKU yet. Use the email order request below (see docs/OPS-INTEGRATIONS.md).';
+        }
+      }
+    } catch {
+      stripeBtn.disabled = false;
+      stripeBtn.textContent = 'Pay with card';
+    }
+  }
+  refreshStripeAvailability();
+
   stripeBtn?.addEventListener('click', async () => {
     if (!stripePanel || !stripeStatus) return;
+    if (stripeBtn instanceof HTMLButtonElement && stripeBtn.disabled) return;
     const sku = stripePanel.getAttribute('data-checkout-sku');
     const qtyInput = document.getElementById('stripe-qty');
     const quantity = Number(qtyInput?.value || 1);

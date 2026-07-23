@@ -2,6 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 ---
 
 <BaseLayout
@@ -10,34 +12,111 @@ import Footer from '../components/Footer.astro';
 >
   <Header slot="header" />
   <section class="section">
-    <div class="container prose">
+    <div class="container">
       <p class="eyebrow">Contact</p>
       <h1>Write the desk</h1>
       <p class="lede" style="max-width: 40ch;">We read mail. We don’t diagnose, prescribe, or sell peptides.</p>
 
-      <h2>Editorial / corrections</h2>
-      <p>
-        Spot an error or want a source noted?
-        <a href="mailto:editorial@aminobrief.com">editorial@aminobrief.com</a>
-      </p>
+      <div class="tool-panel" style="margin-top: 1.5rem; max-width: 640px;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Message form</h2>
+        <p style="color: var(--mute); margin: 0 0 1rem;">
+          When Resend is configured, this routes to the desk. Otherwise you’ll get a mailto fallback.
+        </p>
+        <form data-contact-form>
+          <div class="tool-grid">
+            <div class="field">
+              <label for="c-name">Name</label>
+              <input id="c-name" name="name" type="text" required maxlength="120" />
+            </div>
+            <div class="field">
+              <label for="c-email">Email</label>
+              <input id="c-email" name="email" type="email" required />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="c-topic">Topic</label>
+              <select id="c-topic" name="topic">
+                <option value="editorial">Editorial / corrections</option>
+                <option value="orders">Accessory orders / reseller</option>
+                <option value="clinical-seat">Clinical review seat</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="c-message">Message</label>
+              <textarea id="c-message" name="message" required rows="5" maxlength="4000" style="width: 100%; min-height: 8rem; font: inherit; padding: 0.65rem 0.75rem; border: 1px solid var(--line); background: var(--paper); color: var(--ink);"></textarea>
+            </div>
+          </div>
+          <p style="display: none;">
+            <label>Company <input name="company" tabindex="-1" autocomplete="off" /></label>
+          </p>
+          {
+            turnstileSiteKey && (
+              <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="light" style="margin-top: 1rem;" />
+            )
+          }
+          <button class="btn btn-primary" type="submit" style="margin-top: 1rem;">Send</button>
+          <p data-contact-status role="status" aria-live="polite" style="font-family: var(--font-ui); margin: 0.75rem 0 0;"></p>
+        </form>
+      </div>
 
-      <h2>Accessory orders / reseller</h2>
-      <p>
-        MOQ and wholesale questions:
-        <a href="mailto:orders@aminobrief.com">orders@aminobrief.com</a>
-        — or use the order form on each <a href="/shop">shop</a> SKU.
-      </p>
-
-      <h2>Newsletter</h2>
-      <p>
-        Prefer the form on <a href="/newsletter">/newsletter</a>. Unsubscribe links ship with every send once Resend is
-        live.
-      </p>
-
-      <p class="disclaimer">
-        Do not email medical histories or dosing questions expecting clinical advice. We won’t provide it.
-      </p>
+      <div class="prose" style="margin-top: 2.5rem;">
+        <h2>Direct mail</h2>
+        <p>
+          Editorial / corrections:
+          <a href="mailto:editorial@aminobrief.com">editorial@aminobrief.com</a>
+        </p>
+        <p>
+          Accessory orders / reseller:
+          <a href="mailto:orders@aminobrief.com">orders@aminobrief.com</a>
+          — or use the order form on each <a href="/shop">shop</a> SKU.
+        </p>
+        <h2>Newsletter</h2>
+        <p>
+          Prefer the form on <a href="/newsletter">/newsletter</a>.
+        </p>
+        <p class="disclaimer">
+          Do not email medical histories or dosing questions expecting clinical advice. We won’t provide it.
+        </p>
+      </div>
     </div>
   </section>
   <Footer slot="footer" />
 </BaseLayout>
+
+{turnstileSiteKey && <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
+
+<script>
+  const form = document.querySelector('[data-contact-form]');
+  const status = document.querySelector('[data-contact-status]');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!status || !(form instanceof HTMLFormElement)) return;
+    status.textContent = 'Sending…';
+    const data = new FormData(form);
+    const payload = {
+      name: String(data.get('name') || ''),
+      email: String(data.get('email') || ''),
+      topic: String(data.get('topic') || 'other'),
+      message: String(data.get('message') || ''),
+      company: String(data.get('company') || ''),
+      turnstileToken: String(data.get('cf-turnstile-response') || ''),
+    };
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.status === 503 && json.mailto) {
+        window.location.href = json.mailto;
+        return;
+      }
+      if (!res.ok) throw new Error(json.error || 'Send failed');
+      status.textContent = json.message || 'Sent — we’ll read it.';
+      form.reset();
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : 'Send failed';
+    }
+  });
+</script>

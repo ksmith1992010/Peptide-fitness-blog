@@ -43,7 +43,7 @@ export const products: Product[] = [
     ],
     supplierNote: 'Primary: Cascade / Hospira-equivalent medical supply distributors. Confirm COA per lot.',
     image: '/shop/bac-water.webp',
-    imageAlt: 'Clear 30 mL bacteriostatic water vial on a pale studio surface',
+    imageAlt: 'Catalog studio photo: clear 30 mL bacteriostatic water vial on a pale surface',
   },
   {
     slug: 'insulin-syringes',
@@ -65,7 +65,7 @@ export const products: Product[] = [
     ],
     supplierNote: 'Primary: BD / EasyTouch authorized medical distributors.',
     image: '/shop/insulin-syringes.webp',
-    imageAlt: 'Plain white box of U-100 insulin syringes',
+    imageAlt: 'Catalog studio photo: plain U-100 insulin syringe box with one sealed syringe',
   },
   {
     slug: 'vial-carry-case',
@@ -87,7 +87,7 @@ export const products: Product[] = [
     ],
     supplierNote: 'OEM hard-case partners (Alibaba/US kitting). QC foam fit against 3mL/10mL vials.',
     image: '/shop/vial-carry-case.webp',
-    imageAlt: 'Open hard-shell vial carry case with foam inserts and empty vials',
+    imageAlt: 'Catalog studio photo: open hard-shell vial carry case with foam and empty vials',
   },
   {
     slug: 'alcohol-prep-pads',
@@ -104,7 +104,7 @@ export const products: Product[] = [
     details: ['70% IPA', 'Individually wrapped', 'Reseller MOQ: 10 packs'],
     supplierNote: 'Medline / Dynarex class distributors.',
     image: '/shop/alcohol-prep-pads.webp',
-    imageAlt: 'Stack of individually wrapped alcohol prep pads',
+    imageAlt: 'Catalog studio photo: stack of individually wrapped alcohol prep pads',
   },
   {
     slug: 'sterile-empty-vials',
@@ -121,7 +121,7 @@ export const products: Product[] = [
     details: ['10 × 10 mL', 'Rubber stopper + flip cap', 'Not for human drug manufacturing claims'],
     supplierNote: 'Wheaton-style lab vial suppliers; sterility cert required.',
     image: '/shop/sterile-empty-vials.webp',
-    imageAlt: 'Row of empty sterile glass vials with stoppers',
+    imageAlt: 'Catalog studio photo: row of empty sterile glass vials with stoppers',
   },
   {
     slug: 'nitrile-gloves',
@@ -138,7 +138,7 @@ export const products: Product[] = [
     details: ['Size M standard (S/L on request)', 'Ambidesterous', 'Reseller case pricing available'],
     supplierNote: 'Medical glove wholesalers (Halyard / private label).',
     image: '/shop/nitrile-gloves.webp',
-    imageAlt: 'Box of blue nitrile gloves with one glove partially pulled out',
+    imageAlt: 'Catalog studio photo: box of blue nitrile gloves with one glove pulled out',
   },
   {
     slug: 'vial-labels-kit',
@@ -155,7 +155,7 @@ export const products: Product[] = [
     details: ['50 labels + marker', 'Solvent resistant', 'Designed for tool-output notes'],
     supplierNote: 'Lab label printers / Brady-compatible blanks.',
     image: '/shop/vial-labels-kit.webp',
-    imageAlt: 'Blank vial labels and a laboratory marker',
+    imageAlt: 'Catalog studio photo: blank vial labels and a laboratory marker',
   },
   {
     slug: 'recon-starter-kit',
@@ -178,7 +178,7 @@ export const products: Product[] = [
     ],
     supplierNote: 'Kitted in-house from component SKUs above.',
     image: '/shop/recon-starter-kit.webp',
-    imageAlt: 'Reconstitution accessory kit with vial, syringes, pads, and labels',
+    imageAlt: 'Catalog studio photo: reconstitution accessory kit flat lay',
   },
   {
     slug: 'reseller-sample-pack',
@@ -199,7 +199,7 @@ export const products: Product[] = [
     ],
     supplierNote: 'Internal kitting. Requires reseller note on order form.',
     image: '/shop/reseller-sample-pack.webp',
-    imageAlt: 'Reseller sample assortment of vials, syringe boxes, case, and prep pads',
+    imageAlt: 'Catalog studio photo: reseller sample assortment of accessory SKUs',
   },
   {
     slug: 'wholesale-syringe-case',
@@ -216,7 +216,7 @@ export const products: Product[] = [
     details: ['MOQ 10 boxes', 'Flat reseller carton rate', 'Ship freight-friendly'],
     supplierNote: 'Direct drop from syringe distributor when carton MOQ met.',
     image: '/shop/wholesale-syringe-case.webp',
-    imageAlt: 'Wholesale carton stacked with plain syringe boxes',
+    imageAlt: 'Catalog studio photo: wholesale carton stacked with plain syringe boxes',
   },
 ];
 

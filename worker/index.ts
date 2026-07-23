@@ -3,6 +3,7 @@
  * - /api/newsletter           POST subscribe → KV (+ optional Resend audience)
  * - /api/newsletter/broadcast POST staff broadcast via Resend
  * - /api/newsletter/backfill  POST staff KV → Resend audience sync
+ * - /api/contact              POST contact desk (Resend or mailto fallback)
  * - /api/checkout             POST Stripe Checkout session
  * - /api/checkout/priced      GET priced SKU list
  * - /api/health               GET binding status (no secrets)
@@ -94,6 +95,7 @@ function corsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get('Origin') || '';
   const allowed =
     origin === 'https://aminobrief.com' ||
+    origin === 'https://www.aminobrief.com' ||
     origin.endsWith('.workers.dev') ||
     origin.startsWith('http://localhost:') ||
     origin.startsWith('http://127.0.0.1:');
@@ -190,6 +192,75 @@ async function handleNewsletter(request: Request, env: Env): Promise<Response> {
 
   // Same message whether new or existing — avoid email enumeration
   return json({ message: 'Thanks — you’re on the Amino Brief list (or already were).' }, 200, request);
+}
+
+async function handleContact(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(request) });
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405, request);
+
+  const body = (await request.json().catch(() => null)) as {
+    name?: string;
+    email?: string;
+    topic?: string;
+    message?: string;
+    company?: string;
+    turnstileToken?: string;
+  } | null;
+
+  if (!body?.email || !isEmail(body.email)) return json({ error: 'Valid email required' }, 400, request);
+  if (body.company) return json({ message: 'Thanks — message received.' }, 200, request);
+
+  const name = (body.name || '').trim().slice(0, 120);
+  const topic = (body.topic || 'other').trim().slice(0, 40);
+  const message = (body.message || '').trim().slice(0, 4000);
+  if (!name || !message) return json({ error: 'Name and message required' }, 400, request);
+
+  const ip = request.headers.get('CF-Connecting-IP');
+  const human = await verifyTurnstile(body.turnstileToken, env, ip);
+  if (!human) return json({ error: 'Turnstile verification failed' }, 403, request);
+
+  const to =
+    topic === 'orders' ? 'orders@aminobrief.com' : 'editorial@aminobrief.com';
+  const subject = `[Amino Brief ${topic}] ${name}`.slice(0, 180);
+  const text = [
+    `From: ${name} <${body.email.trim().toLowerCase()}>`,
+    `Topic: ${topic}`,
+    `IP: ${ip || 'n/a'}`,
+    '',
+    message,
+  ].join('\n');
+
+  if (!env.RESEND_API_KEY) {
+    const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+    return json(
+      {
+        error: 'Resend not configured — opening mail client fallback',
+        mailto,
+      },
+      503,
+      request,
+    );
+  }
+
+  const from = env.RESEND_FROM || 'Amino Brief <editorial@aminobrief.com>';
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      reply_to: body.email.trim().toLowerCase(),
+      subject,
+      text,
+    }),
+  });
+  if (!res.ok) {
+    return json({ error: `Mail send failed (${res.status})` }, 502, request);
+  }
+  return json({ message: 'Sent — the desk will read it.' }, 200, request);
 }
 
 async function syncResendContact(env: Env, email: string, name: string): Promise<void> {
@@ -660,6 +731,7 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
 
   if (url.pathname === '/api/newsletter') return handleNewsletter(request, env);
+  if (url.pathname === '/api/contact') return handleContact(request, env);
   if (url.pathname === '/api/newsletter/broadcast') return handleNewsletterBroadcast(request, env);
   if (url.pathname === '/api/newsletter/backfill') return handleNewsletterBackfill(request, env);
   if (url.pathname === '/api/checkout') return handleStripeCheckout(request, env);

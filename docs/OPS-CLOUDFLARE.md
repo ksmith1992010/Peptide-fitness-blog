@@ -55,11 +55,18 @@ Requires Cloudflare AI / Unified Billing for Grok; Llama works on Workers AI alo
 
 ## 4. Custom domain
 
-Workers → peptide-fitness-blog → Domains & Routes → add `aminobrief.com` (and `www` redirect as needed).
+See **[DOMAIN.md](./DOMAIN.md)** for buy → attach → env → email.
 
-## 5. Desk workflow
+Short path: Workers → peptide-fitness-blog → Domains & Routes → add `aminobrief.com` (+ www redirect).
+
+## 5. Turnstile / Stripe / Resend
+
+See **[OPS-INTEGRATIONS.md](./OPS-INTEGRATIONS.md)** for secret names and verification steps.
+
+## 6. Desk workflow
 
 1. Open `/desk`
 2. Paste `NEWS_TRIGGER_SECRET` into Staff session
 3. Open a draft → optional **AI rewrite assist** → **Copy markdown**
 4. Paste into `src/content/guides/<slug>.md`, fact-check, PR
+5. Set `reviewStatus` / `sources` in frontmatter; keep `editorial-only` until a clinician is seated on `/authors`

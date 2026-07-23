@@ -16,11 +16,13 @@ const schema = {
     description: a.bio,
   })),
 };
+
+const openSeat = authors.find((a) => a.seatStatus === 'open');
 ---
 
 <BaseLayout
   title="Authors"
-  description="Who writes Amino Brief, what credentials we claim, and how medical review is disclosed."
+  description="Who writes Amino Brief, what credentials we claim, and how the clinical review seat is disclosed."
   jsonLd={schema}
 >
   <Header slot="header" />
@@ -39,6 +41,8 @@ const schema = {
               <div style="padding: 0.25rem 0;">
                 <div class="meta" style="text-transform: uppercase; letter-spacing: 0.08em;">
                   {a.role}
+                  {a.seatStatus === 'open' && ' · seat open'}
+                  {a.seatStatus === 'seated' && ' · seated'}
                   {!a.reviewsMedicalClaims && ' · not a medical endorsement'}
                 </div>
                 <h3 style="margin: 0.4rem 0;">{a.name}</h3>
@@ -54,8 +58,27 @@ const schema = {
         }
       </ul>
 
+      {
+        openSeat && (
+          <div class="tool-panel" style="margin-top: 2rem; max-width: 640px;">
+            <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Apply for the clinical review seat</h2>
+            <p style="color: var(--mute); margin: 0 0 1rem;">
+              Licensed clinicians only. Include jurisdiction, license type, scope of practice, and any conflicts
+              (pharma / clinics / peptide vendors). We disclose name + credentials on this page when seated.
+            </p>
+            <a
+              class="btn btn-primary"
+              href={`mailto:${openSeat.contactEmail || 'editorial@aminobrief.com'}?subject=${encodeURIComponent('Clinical review seat — Amino Brief')}&body=${encodeURIComponent('License type / jurisdiction:\nScope:\nConflicts:\nLinkedIn or CV link:\n')}`}
+            >
+              Email seat application
+            </a>
+          </div>
+        )
+      }
+
       <div class="btn-row" style="margin-top: 2rem;">
-        <a class="btn btn-primary" href="/editorial">Editorial standards</a>
+        <a class="btn btn-secondary" href="/editorial">Editorial standards</a>
+        <a class="btn btn-secondary" href="/resources/sourcing-notes">Sourcing notes</a>
         <a class="btn btn-secondary" href="/about">About + disclaimer</a>
       </div>
     </div>
